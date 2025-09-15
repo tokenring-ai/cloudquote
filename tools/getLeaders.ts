@@ -1,4 +1,4 @@
-import type {Registry} from "@token-ring/registry";
+import Agent from "@tokenring-ai/agent/Agent";
 import {z} from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
@@ -14,9 +14,9 @@ interface Params {
 
 export async function execute(
   {list, type, limit, minPrice, maxPrice}: Params,
-  registry: Registry,
+  agent: Agent,
 ): Promise<any> {
-  const cloudQuoteService = registry.requireFirstServiceByType(CloudQuoteService);
+  const cloudQuoteService = agent.requireFirstServiceByType(CloudQuoteService);
   if (! list) {
     throw new Error("list is required");
   }

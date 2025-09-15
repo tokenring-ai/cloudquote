@@ -1,12 +1,12 @@
 {
-  "name": "@token-ring/cloudquote",
+  "name": "@tokenring-ai/cloudquote",
   "version": "0.1.0",
   "description": "CloudQuote financial data tools for TokenRing Writer",
   "type": "module",
   "main": "index.ts",
   "dependencies": {
-    "@token-ring/chat": "0.1.0",
-    "@token-ring/registry": "0.1.0",
+    "@tokenring-ai/agent": "0.1.0",
+    "@tokenring-ai/registry": "0.1.0",
     "axios": "^1.6.0"
   }
 }

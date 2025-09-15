@@ -1,4 +1,4 @@
-import type {Registry} from "@token-ring/registry";
+import Agent from "@tokenring-ai/agent/Agent";
 import {z} from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
@@ -6,9 +6,9 @@ export const name = "cloudquote/getQuote";
 
 export async function execute(
   {symbols}: {symbols?: string[]},
-  registry: Registry,
+  agent: Agent,
 ): Promise<any> {
-  const cloudQuoteService = registry.requireFirstServiceByType(CloudQuoteService);
+  const cloudQuoteService = agent.requireFirstServiceByType(CloudQuoteService);
   if (!symbols || symbols.length === 0) {
     throw new Error("symbols array is required and cannot be empty");
   }

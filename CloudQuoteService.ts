@@ -1,18 +1,25 @@
-import {Service} from "@token-ring/registry";
+import Agent from "@tokenring-ai/agent/Agent";
+import {TokenRingService} from "@tokenring-ai/agent/types";
 import axios from "axios";
 
 export interface CloudQuoteServiceOptions {
   apiKey: string;
 }
 
-export default class CloudQuoteService extends Service {
+export default class CloudQuoteService implements TokenRingService {
+  name = "CloudQuote";
+  description = "Service for accessing CloudQuote financial data API";
+  
   private readonly apiKey: string;
   constructor({ apiKey }: CloudQuoteServiceOptions) {
-    super();
     if (!apiKey) {
       throw new Error('API key is required');
     }
     this.apiKey = apiKey;
+  }
+
+  async attach(agent: Agent): Promise<void> {
+    // No state initialization needed for CloudQuote service
   }
 
   async getJSON(apiPath: string, params: Record<string, string|number|undefined|null>) {

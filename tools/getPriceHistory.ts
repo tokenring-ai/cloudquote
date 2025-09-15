@@ -1,4 +1,4 @@
-import type {Registry} from "@token-ring/registry";
+import Agent from "@tokenring-ai/agent/Agent";
 import {z} from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 import moment from "moment-timezone";
@@ -7,9 +7,9 @@ export const name = "cloudquote/getPriceHistory";
 
 export async function execute(
   {symbol, from, to}: {symbol?: string; from?: string; to?: string},
-  registry: Registry,
+  agent: Agent,
 ): Promise<any> {
-  const cloudQuoteService = registry.requireFirstServiceByType(CloudQuoteService);
+  const cloudQuoteService = agent.requireFirstServiceByType(CloudQuoteService);
 
   if (!symbol) {
     throw new Error("symbol is required");
