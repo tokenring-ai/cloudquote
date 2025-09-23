@@ -16,7 +16,7 @@ export async function execute(
   {list, type, limit, minPrice, maxPrice}: Params,
   agent: Agent,
 ): Promise<any> {
-  const cloudQuoteService = agent.requireFirstServiceByType(CloudQuoteService);
+  const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
   if (! list) {
     throw new Error("list is required");
   }

@@ -14,7 +14,7 @@ export async function execute(
   },
   agent: Agent,
 ): Promise<any> {
-  const cloudQuoteService = agent.requireFirstServiceByType(CloudQuoteService);
+  const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
   if (! symbols) {
     throw new Error("symbols is required");
   }

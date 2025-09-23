@@ -4,8 +4,9 @@ import packageJSON from './package.json' with {type: 'json'};
 export const packageInfo: TokenRingPackage = {
   name: packageJSON.name,
   version: packageJSON.version,
-  description: packageJSON.description
+  description: packageJSON.description,
+  tools
 };
 
 export {default as CloudQuoteService} from "./CloudQuoteService.ts";
-export * as tools from "./tools.ts";
+import * as tools from "./tools.ts";

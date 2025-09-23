@@ -1,7 +1,7 @@
 import Agent from "@tokenring-ai/agent/Agent";
+import moment from "moment-timezone";
 import {z} from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
-import moment from "moment-timezone";
 
 export const name = "cloudquote/getPriceHistory";
 
@@ -9,7 +9,7 @@ export async function execute(
   {symbol, from, to}: {symbol?: string; from?: string; to?: string},
   agent: Agent,
 ): Promise<any> {
-  const cloudQuoteService = agent.requireFirstServiceByType(CloudQuoteService);
+  const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
 
   if (!symbol) {
     throw new Error("symbol is required");

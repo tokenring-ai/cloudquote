@@ -8,7 +8,7 @@ export async function execute(
   {symbols}: {symbols?: string[]},
   agent: Agent,
 ): Promise<any> {
-  const cloudQuoteService = agent.requireFirstServiceByType(CloudQuoteService);
+  const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
   if (!symbols || symbols.length === 0) {
     throw new Error("symbols array is required and cannot be empty");
   }
