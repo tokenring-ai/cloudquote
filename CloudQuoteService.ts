@@ -1,46 +1,71 @@
 import Agent from "@tokenring-ai/agent/Agent";
 import {TokenRingService} from "@tokenring-ai/agent/types";
-import axios from "axios";
+import {HttpService} from "@tokenring-ai/utility/HttpService";
 
 export interface CloudQuoteServiceOptions {
   apiKey: string;
 }
 
-export default class CloudQuoteService implements TokenRingService {
+export class CloudQuoteError extends Error {
+  constructor(public readonly cause: unknown, message: string) {
+    super(message);
+    this.name = "CloudQuoteError";
+  }
+}
+
+export default class CloudQuoteService extends HttpService implements TokenRingService {
   name = "CloudQuote";
   description = "Service for accessing CloudQuote financial data API";
   
   private readonly apiKey: string;
+  protected baseUrl = "https://api.cloudquote.io";
+  protected defaultHeaders: Record<string, string>;
+  private readonly timeout = 10_000;
+
   constructor({ apiKey }: CloudQuoteServiceOptions) {
+    super();
     if (!apiKey) {
       throw new Error('API key is required');
     }
     this.apiKey = apiKey;
+    this.defaultHeaders = {
+      'Authorization': `privateKey ${this.apiKey}`,
+      'Content-Type': 'application/json'
+    };
   }
 
   async attach(agent: Agent): Promise<void> {
     // No state initialization needed for CloudQuote service
   }
 
-  async getJSON(apiPath: string, params: Record<string, string|number|undefined|null>) {
-    const filteredParams: Record<string, string> = {};
-    for (const key in params) {
-      if (params[key] != null) {
-        filteredParams[key] = "" + params[key];
+  private async request<T>(path: string, params?: Record<string, any>, options?: { method?: string; body?: any }): Promise<T> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params) {
+        const filtered = Object.fromEntries(
+          Object.entries(params).filter(([, v]) => v != null)
+        );
+        Object.entries(filtered).forEach(([key, value]) => {
+          queryParams.set(key, String(value));
+        });
       }
+      
+      const pathWithQuery = `/${path}.json${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      
+      return await this.fetchJson(pathWithQuery, {
+        method: options?.method || 'GET',
+        body: options?.body ? JSON.stringify(options.body) : undefined,
+      }, `CloudQuote ${path}`);
+    } catch (err: any) {
+      if (err.status) {
+        throw new CloudQuoteError(err.details, `HTTP ${err.status}: ${err.message}`);
+      }
+      throw new CloudQuoteError(err, `Failed request to ${path}`);
     }
+  }
 
-    const { data } = await axios.get(
-      `https://api.cloudquote.io/${apiPath}.json`,
-      {
-        params: filteredParams,
-        headers: {
-          'Authorization': `privateKey ${this.apiKey}`
-        },
-        responseType: 'json'
-      }
-    );
-    return data;
+  async getJSON(apiPath: string, params: Record<string, string|number|undefined|null>) {
+    return this.request<any>(apiPath, params);
   }
 
 
@@ -51,15 +76,36 @@ export default class CloudQuoteService implements TokenRingService {
   }
 
   async getHeadlinesBySecurity(params: any) {
-    const { data } = await axios.post(
-      "http://api.investcenter.newsrpm.com:16016/search/indexedData",
-      params,
-      {
-        headers: {
-          'Authorization': this.apiKey,
-        },
+    try {
+      // This uses a different base URL, so we need to handle it separately
+      const {doFetchWithRetry} = await import("@tokenring-ai/utility/doFetchWithRetry");
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+      const response = await doFetchWithRetry(
+        "http://api.investcenter.newsrpm.com:16016/search/indexedData",
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': this.apiKey,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(params),
+          signal: controller.signal
+        }
+      );
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new CloudQuoteError(errorData, `HTTP ${response.status}: ${response.statusText}`);
       }
-    );
-    return data;
+
+      return await response.json();
+    } catch (err) {
+      if (err instanceof CloudQuoteError) throw err;
+      throw new CloudQuoteError(err, 'Failed to get headlines by security');
+    }
   }
 }
