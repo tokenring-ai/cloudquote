@@ -1,5 +1,5 @@
 import Agent from "@tokenring-ai/agent/Agent";
-import moment from "moment-timezone";
+import { format, toZonedTime } from "date-fns-tz";
 import {z} from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
@@ -17,7 +17,8 @@ export async function execute(
 
   const { rows} =  await cloudQuoteService.getJSON('fcon/getPriceTicks', {symbol});
   for (let row of rows) {
-    row[0] = moment.tz(row[0], 'America/New_York').format('YYYY-MM-DD');
+    const zoned = toZonedTime(row[0], 'America/New_York');
+    row[0] = format(zoned, 'yyyy-MM-dd');
   }
 
   return rows;
