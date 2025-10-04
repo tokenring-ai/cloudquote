@@ -2,10 +2,8 @@ import Agent from "@tokenring-ai/agent/Agent";
 import {TokenRingService} from "@tokenring-ai/agent/types";
 import {doFetchWithRetry} from "@tokenring-ai/utility/doFetchWithRetry";
 import {HttpService} from "@tokenring-ai/utility/HttpService";
+import {z} from "zod";
 
-export interface CloudQuoteServiceOptions {
-  apiKey: string;
-}
 
 export class CloudQuoteError extends Error {
   constructor(public readonly cause: unknown, message: string) {
@@ -109,3 +107,7 @@ export default class CloudQuoteService extends HttpService implements TokenRingS
     }
   }
 }
+export const CloudQuoteServiceOptionsSchema = z.object({
+  apiKey: z.string(),
+});
+export type CloudQuoteServiceOptions = z.infer<typeof CloudQuoteServiceOptionsSchema>;
