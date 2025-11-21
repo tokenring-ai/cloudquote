@@ -1,5 +1,5 @@
 import {AgentTeam, TokenRingPackage} from "@tokenring-ai/agent";
-import {AIService} from "@tokenring-ai/ai-client";
+import {ChatService} from "@tokenring-ai/chat";
 import CloudQuoteService, {CloudQuoteServiceOptionsSchema} from "./CloudQuoteService.ts";
 import packageJSON from './package.json' with {type: 'json'};
 import * as tools from "./tools.ts";
@@ -11,8 +11,8 @@ export default {
   description: packageJSON.description,
   install(agentTeam: AgentTeam) {
 
-    agentTeam.waitForService(AIService, aiService =>
-      aiService.addTools(packageJSON.name, tools)
+    agentTeam.waitForService(ChatService, chatService =>
+      chatService.addTools(packageJSON.name, tools)
     );
     const config = agentTeam.getConfigSlice('cloudquote', CloudQuoteServiceOptionsSchema.optional());
     if (config) {

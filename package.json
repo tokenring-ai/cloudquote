@@ -6,6 +6,7 @@
   "main": "index.ts",
   "dependencies": {
     "@tokenring-ai/agent": "0.1.0",
+    "@tokenring-ai/chat": "0.1.0",
     "@tokenring-ai/utility": "0.1.0",
     "date-fns-tz": "^3.2.0"
   }
