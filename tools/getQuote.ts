@@ -1,11 +1,12 @@
 import Agent from "@tokenring-ai/agent/Agent";
+import {TokenRingToolDefinition} from "@tokenring-ai/chat/types";
 import {z} from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
-export const name = "cloudquote/getQuote";
+const name = "cloudquote/getQuote";
 
-export async function execute(
-  {symbols}: {symbols?: string[]},
+async function execute(
+  {symbols}: z.infer<typeof inputSchema>,
   agent: Agent,
 ): Promise<any> {
   const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
@@ -15,8 +16,12 @@ export async function execute(
   return await cloudQuoteService.getJSON('fcon/getQuote', {symbol: symbols.join(",")});
 }
 
-export const description = "Retrieve pricing and metadata for given security symbols.";
+const description = "Retrieve pricing and metadata for given security symbols.";
 
-export const inputSchema = z.object({
+const inputSchema = z.object({
   symbols: z.array(z.string()).describe("Array of ticker symbols to fetch (e.g. ['AAPL', 'GOOGL', 'MSFT'])."),
 });
+
+export default {
+  name, description, inputSchema, execute,
+} as TokenRingToolDefinition<typeof inputSchema>;

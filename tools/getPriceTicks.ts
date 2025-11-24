@@ -1,12 +1,13 @@
 import Agent from "@tokenring-ai/agent/Agent";
+import {TokenRingToolDefinition} from "@tokenring-ai/chat/types";
 import { format, toZonedTime } from "date-fns-tz";
 import {z} from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
-export const name = "cloudquote/getPriceTicks";
+const name = "cloudquote/getPriceTicks";
 
-export async function execute(
-  {symbol}: {symbol?: string},
+async function execute(
+  {symbol}: z.infer<typeof inputSchema>,
   agent: Agent,
 ): Promise<any> {
   const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
@@ -24,8 +25,12 @@ export async function execute(
   return rows;
 }
 
-export const description = "Fetch intraday price ticks (time, price, volume) for a symbol. To use this API correctly, request a data range 5 min ahead and behind the time you are looking for";
+const description = "Fetch intraday price ticks (time, price, volume) for a symbol. To use this API correctly, request a data range 5 min ahead and behind the time you are looking for";
 
-export const inputSchema = z.object({
+const inputSchema = z.object({
   symbol: z.string().describe("Ticker symbol."),
 });
+
+export default {
+  name, description, inputSchema, execute,
+} as TokenRingToolDefinition<typeof inputSchema>;
