@@ -19,6 +19,6 @@ export default {
       app.addServices(new CloudQuoteService(config));
     }
   },
-} as TokenRingPlugin;
+} satisfies TokenRingPlugin;
 
 export {default as CloudQuoteService} from "./CloudQuoteService.ts";
