@@ -1,15 +1,15 @@
 {
   "name": "@tokenring-ai/cloudquote",
- "version": "0.2.0",
+  "version": "0.2.0",
   "description": "CloudQuote financial data tools for TokenRing Writer",
   "type": "module",
   "main": "index.ts",
   "dependencies": {
-   "@tokenring-ai/app": "0.2.0",
-   "zod": "^4.1.13",
-   "@tokenring-ai/agent": "0.2.0",
-   "@tokenring-ai/chat": "0.2.0",
-   "@tokenring-ai/utility": "0.2.0",
+    "@tokenring-ai/app": "0.2.0",
+    "zod": "^4.1.13",
+    "@tokenring-ai/agent": "0.2.0",
+    "@tokenring-ai/chat": "0.2.0",
+    "@tokenring-ai/utility": "0.2.0",
     "date-fns-tz": "^3.2.0"
   }
 }
