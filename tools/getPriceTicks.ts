@@ -4,7 +4,7 @@ import { format, toZonedTime } from "date-fns-tz";
 import {z} from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
-const name = "cloudquote/getPriceTicks";
+const name = "cloudquote_getPriceTicks";
 
 async function execute(
   {symbol}: z.infer<typeof inputSchema>,

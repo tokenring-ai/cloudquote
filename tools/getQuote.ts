@@ -3,7 +3,7 @@ import {TokenRingToolDefinition} from "@tokenring-ai/chat/types";
 import {z} from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
-const name = "cloudquote/getQuote";
+const name = "cloudquote_getQuote";
 
 async function execute(
   {symbols}: z.infer<typeof inputSchema>,

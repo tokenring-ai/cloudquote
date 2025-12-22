@@ -3,7 +3,7 @@ import {TokenRingToolDefinition} from "@tokenring-ai/chat/types";
 import {z} from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
-const name = "cloudquote/getHeadlinesBySecurity";
+const name = "cloudquote_getHeadlinesBySecurity";
 
 async function execute(
   {symbols, start, count, minDate, maxDate}: z.infer<typeof inputSchema>,
