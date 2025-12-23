@@ -33,10 +33,6 @@ export default class CloudQuoteService extends HttpService implements TokenRingS
     };
   }
 
-  async attach(agent: Agent): Promise<void> {
-    // No state initialization needed for CloudQuote service
-  }
-
   private async request<T>(path: string, params?: Record<string, any>, options?: { method?: string; body?: any }): Promise<T> {
     try {
       const queryParams = new URLSearchParams();
