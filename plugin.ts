@@ -19,7 +19,6 @@ export default {
     app.waitForService(ChatService, chatService =>
       chatService.addTools(packageJSON.name, tools)
     );
-    // const config = app.getConfigSlice('cloudquote', CloudQuoteServiceOptionsSchema.optional());
     if (config.cloudquote) {
       app.addServices(new CloudQuoteService(config.cloudquote));
     }
