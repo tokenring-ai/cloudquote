@@ -1,50 +1,25 @@
 # @tokenring-ai/cloudquote
 
-CloudQuote financial data tools for TokenRing Writer that provide access to market data, quotes, and news through the CloudQuote API.
-
 ## Overview
 
-The CloudQuote package provides a comprehensive set of tools for accessing financial market data, including stock quotes, price history, intraday price ticks, market leaders, and news headlines. It integrates with the CloudQuote API service to deliver real-time financial information through a service-based architecture with proper tool integration.
+CloudQuote financial data tools for TokenRing Writer providing access to market data, quotes, and news through the CloudQuote API.
 
-## Features
+Key features:
+- Real-time stock quotes with pricing and metadata
+- Intraday price ticks for detailed market activity
+- Historical price data for analysis and charting
+- Market leaders (most active, gainers, losers)
+- News headlines by security symbols
+- Type-safe tool integration with zod schema validation
+- Service-based architecture with automatic retry logic
+- Multi-API endpoint support
+- Timezone handling for Eastern Time market data
 
-- **Real-time stock quotes** with pricing and metadata
-- **Intraday price ticks** for detailed market activity
-- **Historical price data** for analysis and charting
-- **Market leaders** (most active, gainers, losers, popular stocks)
-- **News headlines** by security symbols
-- **Type-safe tool integration** with zod schema validation
-- **Service-based architecture** with automatic retry logic
-- **Multi-API endpoint support** including dedicated news API
-
-## Installation
-
-```bash
-bun install @tokenring-ai/cloudquote
-```
-
-## Package Structure
-
-```
-pkg/cloudquote/
-├── index.ts                 # Export entry point
-├── CloudQuoteService.ts     # Main service class with API integration
-├── tools.ts                 # Tool exports and definitions
-├── plugin.ts                # App integration and service registration
-└── tools/                   # Individual tool implementations
-    ├── getQuote.ts          # Stock quote retrieval
-    ├── getLeaders.ts        # Market leaders lists
-    ├── getPriceTicks.ts     # Intraday price data
-    ├── getPriceHistory.ts   # Historical price data
-    └── getHeadlinesBySecurity.ts # News headlines
-```
-
-## Configuration
+## Plugin Configuration
 
 The package requires an API key to access the CloudQuote service. Configure it in your application:
 
-```typescript
-// In your app configuration
+```json
 {
   "cloudquote": {
     "apiKey": "your-api-key-here"
@@ -52,45 +27,56 @@ The package requires an API key to access the CloudQuote service. Configure it i
 }
 ```
 
-## Service Architecture
+To enable the plugin in your application, register it with:
 
-The CloudQuote package provides a service-based architecture:
+```typescript
+import cloudquotePlugin from '@tokenring-ai/cloudquote/plugin';
 
-- **CloudQuoteService**: Main service class handling API requests with automatic retries
-- **TokenRingToolDefinition**: Each tool follows the standardized TokenRing tool pattern
-- **Error Handling**: Custom CloudQuoteError with detailed error messages
-- **Type Safety**: Zod schema validation for all tool inputs
-- **Multi-API Support**: Separate endpoints for quotes and news APIs
+app.registerPlugin(cloudquotePlugin);
+```
 
-## Available Tools
+## Tools
+
+The package provides the following tools for accessing financial data:
 
 ### getQuote
 
 Retrieve pricing and metadata for given security symbols.
 
-**Parameters:**
-- `symbols` (required): Array of ticker symbols to fetch (e.g. `['AAPL', 'GOOGL', 'MSFT']`)
+**Tool Name:** `cloudquote_getQuote`
 
+**Input Schema:**
+```typescript
+{
+  symbols: z.array(z.string()).describe("Array of ticker symbols to fetch (e.g. ['AAPL', 'GOOGL', 'MSFT'])."),
+}
+```
+
+**Example:**
 ```typescript
 import * as cloudquote from "@tokenring-ai/cloudquote";
 
-// Get quotes for multiple symbols
-const quotes = await cloudquote.tools.getQuote({
-  symbols: ['AAPL', 'GOOGL', 'MSFT']
-});
+const quotes = await cloudquote.tools.getQuote({ symbols: ['AAPL'] });
 ```
 
 ### getLeaders
 
-Get a list of stocks that are notable today.
+Get a list of stocks that are notable today (most active by volume, highest percent gainers, biggest percent losers, or most popular stocks).
 
-**Parameters:**
-- `list` (required): Type of list (`MOSTACTIVE`, `PERCENTGAINERS`, `PERCENTLOSERS`)
-- `type` (optional): Security type (`STOCK` or `ETF`)
-- `limit` (optional): Max number of results (1-50)
-- `minPrice` (optional): Minimum price filter
-- `maxPrice` (optional): Maximum price filter
+**Tool Name:** `cloudquote_getLeaders`
 
+**Input Schema:**
+```typescript
+{
+  list: z.enum(["MOSTACTIVE", "PERCENTGAINERS", "PERCENTLOSERS"]).describe("Type of list."),
+  type: z.enum(["STOCK", "ETF"]).describe("Security type.").optional(),
+  limit: z.number().int().min(1).max(50).describe("Max number of results.").optional(),
+  minPrice: z.number().optional(),
+  maxPrice: z.number().optional()
+}
+```
+
+**Example:**
 ```typescript
 // Get most active stocks
 const active = await cloudquote.tools.getLeaders({
@@ -110,27 +96,39 @@ const gainers = await cloudquote.tools.getLeaders({
 
 Fetch intraday price ticks (time, price, volume) for a symbol.
 
-**Parameters:**
-- `symbol` (required): Ticker symbol
+**Tool Name:** `cloudquote_getPriceTicks`
 
+**Input Schema:**
 ```typescript
-// Get intraday price ticks for a symbol
-const ticks = await cloudquote.tools.getPriceTicks({
-  symbol: 'AAPL'
-});
+{
+  symbol: z.string().describe("Ticker symbol."),
+}
 ```
+
+**Example:**
+```typescript
+const ticks = await cloudquote.tools.getPriceTicks({ symbol: 'AAPL' });
+```
+
+**Note:** The API returns timestamps in UTC. The tool automatically converts them to America/New_York timezone and formats dates as yyyy-MM-dd.
 
 ### getPriceHistory
 
 Fetch historical daily price data for a symbol.
 
-**Parameters:**
-- `symbol` (required): Ticker symbol
-- `from` (optional): Start date (YYYY-MM-DD)
-- `to` (optional): End date (YYYY-MM-DD)
+**Tool Name:** `cloudquote_getPriceHistory`
 
+**Input Schema:**
 ```typescript
-// Get historical price data
+{
+  symbol: z.string().describe("Ticker symbol."),
+  from: z.string().describe("Start date (YYYY-MM-DD). Must be at least 1 day before date requested").optional(),
+  to: z.string().describe("End date (YYYY-MM-DD). Must be at least 1 day after date requested").optional(),
+}
+```
+
+**Example:**
+```typescript
 const history = await cloudquote.tools.getPriceHistory({
   symbol: 'AAPL',
   from: '2023-01-01',
@@ -138,95 +136,71 @@ const history = await cloudquote.tools.getPriceHistory({
 });
 ```
 
+**Note:** The API returns timestamps in UTC. The tool automatically converts them to America/New_York timezone and formats dates as yyyy-MM-dd.
+
 ### getHeadlinesBySecurity
 
-Retrieve news headlines for one or more ticker symbols.
+Retrieve news headlines for one or more ticker symbols within a specified time range.
 
-**Parameters:**
-- `symbols` (required): Comma-separated ticker symbols (e.g., `'GOOG,AAPL'`)
-- `start` (optional): Number of records to skip
-- `count` (optional): Number of records to retrieve (max 100)
-- `minDate` (optional): Start date-time filter (ISO 8601)
-- `maxDate` (optional): End date-time filter (ISO 8601)
+**Tool Name:** `cloudquote_getHeadlinesBySecurity`
 
+**Input Schema:**
 ```typescript
-// Get headlines for multiple symbols
+{
+  symbols: z.string().describe("Comma-separated ticker symbols (e.g., 'GOOG,AAPL')."),
+  start: z.number().int().min(0).describe("Number of records to skip before returning results.").optional(),
+  count: z.number().int().min(1).max(100).describe("Number of records to retrieve (max 100).").optional(),
+  minDate: z.string().describe("Article publication date-time (ISO 8601) for start of date-time range.").optional(),
+  maxDate: z.string().describe("Article publication date-time (ISO 8601) for start of date-time range.").optional(),
+}
+```
+
+**Example:**
+```typescript
 const headlines = await cloudquote.tools.getHeadlinesBySecurity({
   symbols: 'AAPL,GOOGL,MSFT',
   count: 50
 });
 ```
 
-## Usage Examples
+**Note:** The tool adds article links based on the slug property (format: `https://www.financialcontent.com/article/{slug}`).
 
-### Basic Integration
+## Services
 
+### CloudQuoteService
+
+Service for accessing CloudQuote financial data API.
+
+**Constructor:**
 ```typescript
-import * as cloudquote from "@tokenring-ai/cloudquote";
-
-// All tools are available through cloudquote.tools
-const allTools = cloudquote.tools;
-
-// Example: Get quotes and headlines
-const [quotes, headlines] = await Promise.all([
-  allTools.getQuote({ symbols: ['AAPL'] }),
-  allTools.getHeadlinesBySecurity({ symbols: 'AAPL', count: 10 })
-]);
+constructor({ apiKey }: CloudQuoteServiceOptions)
 ```
 
-### Service Direct Access
+**Methods:**
 
-For more control, you can access the service directly:
+- `getJSON(apiPath: string, params: Record<string, string|number|undefined|null>)`: Make a request to the CloudQuote API
+- `getPriceChart(params: any)`: Generate a price chart SVG data URI
+- `getHeadlinesBySecurity(params: any)`: Retrieve news headlines (uses separate news API)
 
-```typescript
-import { CloudQuoteService } from "@tokenring-ai/cloudquote";
+**Error Handling:** Throws a `CloudQuoteError` with detailed information including HTTP status codes and response bodies.
 
-// Assuming the service is registered in your app
-const service = app.getService(CloudQuoteService);
-const quotes = await service.getJSON('fcon/getQuote', { symbol: 'AAPL' });
-```
+**Logging:** Enable debug logging via `app.setLogLevel('debug')` to see detailed API request and response information.
 
-## Dependencies
+## Testing
 
-- `@tokenring-ai/app`: Application framework and service management
-- `@tokenring-ai/agent`: Agent orchestration system
-- `@tokenring-ai/chat`: Chat and tool integration
-- `@tokenring-ai/utility`: HTTP utilities and retry logic
-- `zod`: Schema validation
-- `date-fns-tz`: Date formatting and timezone handling
-
-## Development
-
-### Testing
+The package uses vitest for unit testing:
 
 ```bash
-bun run test          # Run tests once
-bun run test:watch    # Run tests in watch mode
-bun run test:coverage # Generate test coverage report
+# Run tests
+bun test
+
+# Run tests in watch mode
+bun test:watch
+
+# Run tests with coverage
+bun test:coverage
 ```
-
-### Build
-
-```bash
-bun run build         # Build the package
-```
-
-## API Integration Notes
-
-The package currently uses multiple API endpoints:
-
-### Quote API
-- Base URL: `https://api.cloudquote.io`
-- Endpoints: `fcon/getQuote`, `fcon/getLeaders`, `fcon/getPriceTicks`, `fcon/getPriceHistory`
-
-### News API
-- Base URL: `http://api.investcenter.newsrpm.com:16016/search/indexedData`
-- Endpoint: `fcon/getHeadlinesBySecurity`
-
-### Chart Generation
-- URL: `https://chart.financialcontent.com/Chart`
-- Parameters: Symbol, interval, and various styling options
 
 ## License
 
-MIT License - see LICENSE file for details.
+MIT License - see [LICENSE](./LICENSE) file for details.
