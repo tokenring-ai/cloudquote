@@ -1,6 +1,6 @@
 import Agent from "@tokenring-ai/agent/Agent";
 import {TokenRingToolDefinition} from "@tokenring-ai/chat/schema";
-import { format, toZonedTime } from "date-fns-tz";
+import {format, toZonedTime} from "date-fns-tz";
 import {z} from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
