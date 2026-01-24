@@ -17,7 +17,7 @@ export default {
   install(app, config) {
 
     app.waitForService(ChatService, chatService =>
-      chatService.addTools(packageJSON.name, tools)
+      chatService.addTools(tools)
     );
     if (config.cloudquote) {
       app.addServices(new CloudQuoteService(config.cloudquote));

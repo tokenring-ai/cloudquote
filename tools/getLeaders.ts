@@ -4,6 +4,7 @@ import {z} from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
 const name = "cloudquote_getLeaders";
+const displayName = "Cloudquote/getLeaders";
 
 async function execute(
   {list, type, limit, minPrice, maxPrice}: z.infer<typeof inputSchema>,
@@ -28,5 +29,5 @@ const inputSchema = z.object({
 });
 
 export default {
-  name, description, inputSchema, execute,
+  name, displayName, description, inputSchema, execute,
 } satisfies TokenRingToolDefinition<typeof inputSchema>;
