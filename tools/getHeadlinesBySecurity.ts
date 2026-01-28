@@ -1,5 +1,5 @@
 import Agent from "@tokenring-ai/agent/Agent";
-import {TokenRingToolDefinition} from "@tokenring-ai/chat/schema";
+import {TokenRingToolDefinition, type TokenRingToolJSONResult} from "@tokenring-ai/chat/schema";
 import {z} from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
@@ -7,9 +7,9 @@ const name = "cloudquote_getHeadlinesBySecurity";
 const displayName = "Cloudquote/getHeadlinesBySecurity";
 
 async function execute(
-  {symbols, start, count, minDate, maxDate}: z.infer<typeof inputSchema>,
+  {symbols, start, count, minDate, maxDate}: z.output<typeof inputSchema>,
   agent: Agent,
-): Promise<any> {
+): Promise<TokenRingToolJSONResult<any>> {
   const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
   if (! symbols) {
     throw new Error("symbols is required");
@@ -19,7 +19,7 @@ async function execute(
     if (row.bodyId) row.link = `https://www.financialcontent.com/article/${row.slug}`;
   }
 
-  return rows;
+  return { type: 'json', data: rows };
 }
 
 const description = "Retrieve news headlines for one or more ticker symbols within a specified time range.";

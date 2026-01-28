@@ -1,5 +1,5 @@
 import Agent from "@tokenring-ai/agent/Agent";
-import {TokenRingToolDefinition} from "@tokenring-ai/chat/schema";
+import {TokenRingToolDefinition, type TokenRingToolJSONResult} from "@tokenring-ai/chat/schema";
 import {format, toZonedTime} from "date-fns-tz";
 import {z} from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
@@ -8,9 +8,9 @@ const name = "cloudquote_getPriceHistory";
 const displayName = "Cloudquote/getPriceHistory";
 
 async function execute(
-  {symbol, from, to}: z.infer<typeof inputSchema>,
+  {symbol, from, to}: z.output<typeof inputSchema>,
   agent: Agent,
-): Promise<any> {
+): Promise<TokenRingToolJSONResult<any>> {
   const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
 
   if (!symbol) {
@@ -23,7 +23,7 @@ async function execute(
     row[0] = format(zoned, 'yyyy-MM-dd');
   }
 
-  return rows;
+  return { type: 'json', data: rows };
 }
 
 const description = "Fetch historical daily price data for a symbol. To use this API correctly, request a date range 1 day ahead and 1 day behind the date you are looking for";

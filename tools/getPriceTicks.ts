@@ -1,5 +1,5 @@
 import Agent from "@tokenring-ai/agent/Agent";
-import {TokenRingToolDefinition} from "@tokenring-ai/chat/schema";
+import {TokenRingToolDefinition, type TokenRingToolJSONResult} from "@tokenring-ai/chat/schema";
 import {format, toZonedTime} from "date-fns-tz";
 import {z} from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
@@ -8,9 +8,9 @@ const name = "cloudquote_getPriceTicks";
 const displayName = "Cloudquote/getPriceTicks";
 
 async function execute(
-  {symbol}: z.infer<typeof inputSchema>,
+  {symbol}: z.output<typeof inputSchema>,
   agent: Agent,
-): Promise<any> {
+): Promise<TokenRingToolJSONResult<any>> {
   const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
 
   if (!symbol) {
@@ -23,7 +23,7 @@ async function execute(
     row[0] = format(zoned, 'yyyy-MM-dd');
   }
 
-  return rows;
+  return { type: 'json', data: rows };
 }
 
 const description = "Fetch intraday price ticks (time, price, volume) for a symbol. To use this API correctly, request a data range 5 min ahead and behind the time you are looking for";
