@@ -13,59 +13,17 @@ export class CloudQuoteError extends Error {
 export default class CloudQuoteService extends HttpService implements TokenRingService {
   name = "CloudQuote";
   description = "Service for accessing CloudQuote financial data API";
-  
-  private readonly apiKey: string;
+
   protected baseUrl = "https://api.cloudquote.io";
   protected defaultHeaders: Record<string, string>;
   private readonly timeout = 10_000;
 
-  constructor({ apiKey }: CloudQuoteServiceOptions) {
+  constructor(private readonly options: CloudQuoteServiceOptions) {
     super();
-    if (!apiKey) {
-      throw new Error('API key is required');
-    }
-    this.apiKey = apiKey;
     this.defaultHeaders = {
-      'Authorization': `privateKey ${this.apiKey}`,
+      'Authorization': `privateKey ${this.options.apiKey}`,
       'Content-Type': 'application/json'
     };
-  }
-
-  private async request<T>(path: string, params?: Record<string, any>, options?: { method?: string; body?: any }): Promise<T> {
-    try {
-      const queryParams = new URLSearchParams();
-      if (params) {
-        const filtered = Object.fromEntries(
-          Object.entries(params).filter(([, v]) => v != null)
-        );
-        Object.entries(filtered).forEach(([key, value]) => {
-          queryParams.set(key, String(value));
-        });
-      }
-      
-      const pathWithQuery = `/${path}.json${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
-      
-      return await this.fetchJson(pathWithQuery, {
-        method: options?.method || 'GET',
-        body: options?.body ? JSON.stringify(options.body) : undefined,
-      }, `CloudQuote ${path}`);
-    } catch (err: any) {
-      if (err.status) {
-        throw new CloudQuoteError(err.details, `HTTP ${err.status}: ${err.message}`);
-      }
-      throw new CloudQuoteError(err, `Failed request to ${path}`);
-    }
-  }
-
-  async getJSON(apiPath: string, params: Record<string, string|number|undefined|null>) {
-    return this.request<any>(apiPath, params);
-  }
-
-
-  async getPriceChart(params: any) {
-    const { symbol, interval } = params;
-    const uri = `https://chart.financialcontent.com/Chart?shwidth=3&fillshx=0&height=200&lncolor=2466BA&interval=${interval}&fillshy=0&gtcolor=2466BA&vucolor=008000&bvcolor=FFFFFF&gmcolor=DDDDDD&shcolor=BBBBBB&grcolor=FFFFFF&vdcolor=FF0000&brcolor=FFFFFF&gbcolor=FFFFFF&lnwidth=2&volume=0&pvcolor=B50000&mkcolor=CD5252&itcolor=666666&fillalpha=0&ticker=${symbol}&Client=stocks&txcolor=BBBBBB&output=svg&bgcolor=FFFFFF&arcolor=null&type=0&width=375`;
-    return { svgDataUri: uri };
   }
 
   async getHeadlinesBySecurity(params: any) {
@@ -79,7 +37,7 @@ export default class CloudQuoteService extends HttpService implements TokenRingS
         {
           method: 'POST',
           headers: {
-            'Authorization': this.apiKey,
+            'Authorization': this.options.apiKey,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(params),
@@ -98,6 +56,43 @@ export default class CloudQuoteService extends HttpService implements TokenRingS
     } catch (err) {
       if (err instanceof CloudQuoteError) throw err;
       throw new CloudQuoteError(err, 'Failed to get headlines by security');
+    }
+  }
+
+  async getJSON(apiPath: string, params: Record<string, string|number|undefined|null>) {
+    return this.request<any>(apiPath, params);
+  }
+
+
+  async getPriceChart(params: any) {
+    const { symbol, interval } = params;
+    const uri = `https://chart.financialcontent.com/Chart?shwidth=3&fillshx=0&height=200&lncolor=2466BA&interval=${interval}&fillshy=0&gtcolor=2466BA&vucolor=008000&bvcolor=FFFFFF&gmcolor=DDDDDD&shcolor=BBBBBB&grcolor=FFFFFF&vdcolor=FF0000&brcolor=FFFFFF&gbcolor=FFFFFF&lnwidth=2&volume=0&pvcolor=B50000&mkcolor=CD5252&itcolor=666666&fillalpha=0&ticker=${symbol}&Client=stocks&txcolor=BBBBBB&output=svg&bgcolor=FFFFFF&arcolor=null&type=0&width=375`;
+    return { svgDataUri: uri };
+  }
+
+  private async request<T>(path: string, params?: Record<string, any>, options?: { method?: string; body?: any }): Promise<T> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params) {
+        const filtered = Object.fromEntries(
+          Object.entries(params).filter(([, v]) => v != null)
+        );
+        Object.entries(filtered).forEach(([key, value]) => {
+          queryParams.set(key, String(value));
+        });
+      }
+
+      const pathWithQuery = `/${path}.json${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+
+      return await this.fetchJson(pathWithQuery, {
+        method: options?.method || 'GET',
+        body: options?.body ? JSON.stringify(options.body) : undefined,
+      }, `CloudQuote ${path}`);
+    } catch (err: any) {
+      if (err.status) {
+        throw new CloudQuoteError(err.details, `HTTP ${err.status}: ${err.message}`);
+      }
+      throw new CloudQuoteError(err, `Failed request to ${path}`);
     }
   }
 }
