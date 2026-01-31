@@ -53,7 +53,6 @@ class CloudQuoteService extends HttpService implements TokenRingService {
 
   // Methods for accessing CloudQuote API
   async getJSON(apiPath: string, params: Record<string, any>): Promise<any>;
-  async getPriceChart(params: any): Promise<{ svgDataUri: string }>;
   async getHeadlinesBySecurity(params: any): Promise<any>;
 }
 ```
@@ -223,8 +222,8 @@ Fetch historical daily price data for a symbol.
   description: "Fetch historical daily price data for a symbol. To use this API correctly, request a date range 1 day ahead and 1 day behind the date you are looking for",
   inputSchema: z.object({
     symbol: z.string().describe("Ticker symbol."),
-    from: z.string().describe("Start date (YYYY-MM-DD). Must be at least 1 day before from the date requested").optional(),
-    to: z.string().describe("End date (YYYY-MM-DD). Must be at least 1 day after the date requested").optional(),
+    from: z.string().describe("Start date (YYYY-MM-DD). Must be at least 1 day before date requested").optional(),
+    to: z.string().describe("End date (YYYY-MM-DD). Must be at least 1 day after date requested").optional(),
   }),
   execute(agent, params) {
     // Fetches historical price data
