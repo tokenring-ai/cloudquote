@@ -11,7 +11,7 @@ export class CloudQuoteError extends Error {
 }
 
 export default class CloudQuoteService extends HttpService implements TokenRingService {
-  name = "CloudQuote";
+  readonly name = "CloudQuote";
   description = "Service for accessing CloudQuote financial data API";
 
   protected baseUrl = "https://api.cloudquote.io";
