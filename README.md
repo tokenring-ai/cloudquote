@@ -9,9 +9,9 @@ The `@tokenring-ai/cloudquote` package provides financial data tools for TokenRi
 - **Real-time Quote Data**: Retrieve pricing and metadata for single or multiple securities
 - **Historical Price Data**: Fetch daily historical price data with timezone-aware formatting
 - **Intraday Price Ticks**: Get intraday price data with time, price, and volume information
-- **Market Leaders**: Access lists of most active stocks, percentage gainers, percentage losers, and most popular stocks
+- **Market Leaders**: Access lists of most active stocks, percentage gainers, and percentage losers
 - **News Headlines**: Retrieve news headlines for specified ticker symbols within date ranges
-- **SVG Price Charts**: Generate dynamic price charts for securities
+- **SVG Price Charts**: Generate dynamic price charts for securities (service method only)
 - **Robust Error Handling**: Custom error types for API-related issues with detailed diagnostics
 - **Timezone-Aware Formatting**: All dates are formatted in America/New_York timezone
 - **Automatic Link Generation**: News headline links are automatically populated when available
@@ -144,7 +144,7 @@ const headlines = await cloudQuoteService.getHeadlinesBySecurity({
 
 ##### `getPriceChart(params: any): Promise<{ svgDataUri: string }>`
 
-Generate an SVG price chart for a security. This method returns a data URI that can be directly embedded in HTML or displayed.
+Generate an SVG price chart for a security. This method returns a data URI that can be directly embedded in HTML or displayed. **Note: This is a service method only and is not exposed as a tool.**
 
 **Parameters:**
 
@@ -265,7 +265,7 @@ Get a list of stocks that are notable today.
 {
   name: "cloudquote_getLeaders",
   displayName: "Cloudquote/getLeaders",
-  description: "Get a list of stocks that are notable today (most active by volume, highest percent gainers, biggest percent losers, or most popular stocks).",
+  description: "Get a list of stocks that are notable today (most active by volume, highest percent gainers, biggest percent losers).",
   inputSchema: z.object({
     list: z.enum(["MOSTACTIVE", "PERCENTGAINERS", "PERCENTLOSERS"]).describe("Type of list."),
     type: z.enum(["STOCK", "ETF"]).describe("Security type.").optional(),
@@ -686,6 +686,16 @@ try {
   }
 }
 ```
+
+### Available Lists for getLeaders
+
+The `getLeaders` tool supports the following list types:
+
+- `MOSTACTIVE` - Most active stocks by volume
+- `PERCENTGAINERS` - Highest percentage gainers
+- `PERCENTLOSERS` - Biggest percentage losers
+
+Note: "MOSTPOPULAR" is not currently supported.
 
 ## Testing
 
