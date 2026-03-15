@@ -11,7 +11,7 @@ The `@tokenring-ai/cloudquote` package provides financial data tools for TokenRi
 - **Intraday Price Ticks**: Get intraday price data with time, price, and volume information
 - **Market Leaders**: Access lists of most active stocks, percentage gainers, and percentage losers
 - **News Headlines**: Retrieve news headlines for specified ticker symbols within date ranges
-- **SVG Price Charts**: Generate dynamic price charts for securities (service method only)
+- **Price Chart URLs**: Generate dynamic price chart URLs for securities
 - **Robust Error Handling**: Custom error types for API-related issues with detailed diagnostics
 - **Timezone-Aware Formatting**: All dates are formatted in America/New_York timezone
 - **Automatic Link Generation**: News headline links are automatically populated when available
@@ -42,7 +42,7 @@ bun add @tokenring-ai/cloudquote
 
 ### Development Dependencies
 
-- `vitest` (^4.0.18)
+- `vitest` (^4.1.0)
 - `typescript` (^5.9.3)
 
 ## Core Components
@@ -115,7 +115,7 @@ const quote = await cloudQuoteService.getJSON('fcon/getQuote', {
 
 ##### `getHeadlinesBySecurity(params: any): Promise<any>`
 
-Retrieve news headlines from the external news API. This method uses a different base URL (`http://api.investcenter.newsrpm.com:16016`) than the main CloudQuote API.
+Retrieve news headlines from the CloudQuote API. This method handles the API communication and returns headline data.
 
 **Parameters:**
 
@@ -127,8 +127,6 @@ Retrieve news headlines from the external news API. This method uses a different
   - `maxDate` (string): End date-time in ISO 8601 format
 
 **Returns:** `Promise<any>` - News headlines data
-
-**API Endpoint:** `http://api.investcenter.newsrpm.com:16016/search/indexedData`
 
 **Example:**
 
@@ -144,7 +142,7 @@ const headlines = await cloudQuoteService.getHeadlinesBySecurity({
 
 ##### `getPriceChart(params: any): Promise<{ svgDataUri: string }>`
 
-Generate an SVG price chart for a security. This method returns a data URI that can be directly embedded in HTML or displayed. **Note: This is a service method only and is not exposed as a tool.**
+Generate a price chart URL for a security. This method returns a URL that can be directly used as an image source. **Note: This is a service method only and is not exposed as a tool.**
 
 **Parameters:**
 
@@ -152,7 +150,7 @@ Generate an SVG price chart for a security. This method returns a data URI that 
   - `symbol` (string): Ticker symbol
   - `interval` (string): Chart interval (e.g., `'1D'`, `'5D'`, `'1M'`)
 
-**Returns:** `Promise<{ svgDataUri: string }>` - SVG data URI
+**Returns:** `Promise<{ svgDataUri: string }>` - Chart URL
 
 **Example:**
 
@@ -257,7 +255,7 @@ console.log(result);
 
 ### cloudquote_getLeaders
 
-Get a list of stocks that are notable today.
+Get a list of stocks that are notable today (most active by volume, highest percent gainers, biggest percent losers).
 
 **Tool Definition:**
 
@@ -638,7 +636,7 @@ const ticks = await agent.invokeTool('cloudquote_getPriceTicks', {
 
 ### News Headline Links
 
-The service automatically fills in links for news headline data when `bodyId` is available:
+The tool automatically fills in links for news headline data when `bodyId` is available:
 
 ```typescript
 const headlines = await agent.invokeTool('cloudquote_getHeadlinesBySecurity', {
@@ -695,8 +693,6 @@ The `getLeaders` tool supports the following list types:
 - `PERCENTGAINERS` - Highest percentage gainers
 - `PERCENTLOSERS` - Biggest percentage losers
 
-Note: "MOSTPOPULAR" is not currently supported.
-
 ## Testing
 
 ### Running Tests
@@ -734,4 +730,4 @@ Tests are organized using vitest and follow the project's testing conventions. T
 
 ## License
 
-MIT License - see [LICENSE](./LICENSE) file for details.
+MIT License - see LICENSE file for details.
