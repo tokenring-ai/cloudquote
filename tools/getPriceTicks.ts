@@ -17,10 +17,17 @@ async function execute(
     throw new Error("symbol is required");
   }
 
-  const { rows} =  await cloudQuoteService.getJSON('fcon/getPriceTicks', {symbol});
+  const result = await cloudQuoteService.getJSON('fcon/getPriceTicks', {symbol});
+  if (!result || !Array.isArray(result.rows)) {
+    throw new Error("Invalid response from getPriceTicks API");
+  }
+
+  const rows = result.rows;
   for (let row of rows) {
-    const zoned = toZonedTime(row[0], 'America/New_York');
-    row[0] = format(zoned, 'yyyy-MM-dd');
+    if (row[0]) {
+      const zoned = toZonedTime(row[0], 'America/New_York');
+      row[0] = format(zoned, 'yyyy-MM-dd');
+    }
   }
 
   return { type: 'json', data: rows };

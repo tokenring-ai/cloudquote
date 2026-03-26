@@ -42,8 +42,8 @@ bun add @tokenring-ai/cloudquote
 
 ### Development Dependencies
 
-- `vitest` (^4.1.0)
-- `typescript` (^5.9.3)
+- `vitest` (^4.1.1)
+- `typescript` (^6.0.2)
 
 ## Core Components
 

@@ -11,11 +11,16 @@ async function execute(
   agent: Agent,
 ): Promise<TokenRingToolJSONResult<any>> {
   const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
-  if (! list) {
+  if (!list) {
     throw new Error("list is required");
   }
 
-  return { type: 'json', data: await cloudQuoteService.getJSON('fcon/getLeaders', {list, type, limit, minPrice, maxPrice}) };
+  const result = await cloudQuoteService.getJSON('fcon/getLeaders', {list, type, limit, minPrice, maxPrice});
+  if (!result || !Array.isArray(result.data)) {
+    throw new Error("Invalid response from getLeaders API");
+  }
+
+  return { type: 'json', data: result.data };
 }
 
 const description = "Get a list of stocks that are notable today (most active by volume, highest percent gainers, biggest percent losers, or most popular stocks).";

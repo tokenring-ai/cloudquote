@@ -11,12 +11,19 @@ async function execute(
   agent: Agent,
 ): Promise<TokenRingToolJSONResult<any>> {
   const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
-  if (! symbols) {
+  if (!symbols) {
     throw new Error("symbols is required");
   }
-  const { rows } =  await cloudQuoteService.getJSON('fcon/getHeadlinesBySecurity', {symbols, start, count, minDate, maxDate});
+  const result = await cloudQuoteService.getJSON('fcon/getHeadlinesBySecurity', {symbols, start, count, minDate, maxDate});
+  if (!result || !Array.isArray(result.rows)) {
+    throw new Error("Invalid response from getHeadlinesBySecurity API");
+  }
+
+  const rows = result.rows;
   for (let row of rows) {
-    if (row.bodyId) row.link = `https://www.financialcontent.com/article/${row.slug}`;
+    if (row.bodyId && row.slug) {
+      row.link = `https://www.financialcontent.com/article/${row.slug}`;
+    }
   }
 
   return { type: 'json', data: rows };
