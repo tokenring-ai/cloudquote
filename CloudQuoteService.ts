@@ -1,7 +1,7 @@
 import {TokenRingService} from "@tokenring-ai/app/types";
 import {doFetchWithRetry} from "@tokenring-ai/utility/http/doFetchWithRetry";
 import {HttpService} from "@tokenring-ai/utility/http/HttpService";
-import {z} from "zod";
+import type {CloudQuoteServiceOptions} from "./schema.ts";
 
 export class CloudQuoteError extends Error {
   constructor(public readonly cause: unknown, message: string) {
@@ -33,11 +33,11 @@ export default class CloudQuoteService extends HttpService implements TokenRingS
       const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
       const response = await doFetchWithRetry(
-        "http://api.investcenter.newsrpm.com:16016/search/indexedData",
+        "http://api.newsrpm.com",
         {
           method: 'POST',
           headers: {
-            'Authorization': this.options.apiKey,
+            'Authorization': `privateKey ${this.options.apiKey}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(params),
@@ -82,11 +82,14 @@ export default class CloudQuoteService extends HttpService implements TokenRingS
         });
       }
 
-      const pathWithQuery = `/${path}.json${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      const pathWithQuery = `https://api.cloudquote.io/${path}.json${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
 
       return await this.fetchJson(pathWithQuery, {
         method: options?.method || 'GET',
         body: options?.body ? JSON.stringify(options.body) : undefined,
+        headers: {
+          'Authorization': `privateKey ${this.options.apiKey}`,
+        }
       }, `CloudQuote ${path}`);
     } catch (err: any) {
       if (err.status) {
@@ -96,7 +99,3 @@ export default class CloudQuoteService extends HttpService implements TokenRingS
     }
   }
 }
-export const CloudQuoteServiceOptionsSchema = z.object({
-  apiKey: z.string(),
-});
-export type CloudQuoteServiceOptions = z.infer<typeof CloudQuoteServiceOptionsSchema>;
