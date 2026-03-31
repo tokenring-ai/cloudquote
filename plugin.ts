@@ -29,7 +29,7 @@ export default {
       rpcService.registerEndpoint(cloudquoteRPC);
     });
     if (config.cloudquote) {
-      app.addServices(new CloudQuoteService(config.cloudquote));
+      app.addServices(new CloudQuoteService(app, config.cloudquote));
     }
   },
   config: packageConfigSchema

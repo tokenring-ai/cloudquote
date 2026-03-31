@@ -1,3 +1,4 @@
+import TokenRingApp from "@tokenring-ai/app";
 import {TokenRingService} from "@tokenring-ai/app/types";
 import {doFetchWithRetry} from "@tokenring-ai/utility/http/doFetchWithRetry";
 import {HttpService} from "@tokenring-ai/utility/http/HttpService";
@@ -18,7 +19,7 @@ export default class CloudQuoteService extends HttpService implements TokenRingS
   protected defaultHeaders: Record<string, string>;
   private readonly timeout = 10_000;
 
-  constructor(private readonly options: CloudQuoteServiceOptions) {
+  constructor(private readonly app: TokenRingApp, private readonly options: CloudQuoteServiceOptions) {
     super();
     this.defaultHeaders = {
       'Authorization': `privateKey ${this.options.apiKey}`,
@@ -82,20 +83,23 @@ export default class CloudQuoteService extends HttpService implements TokenRingS
         });
       }
 
-      const pathWithQuery = `https://api.cloudquote.io/${path}.json${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      queryParams.set('T', this.options.apiKey);
+
+      const pathWithQuery = `${path}.json${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      this.app.serviceOutput(this, `CloudQuote RPC: ${pathWithQuery}`);
 
       return await this.fetchJson(pathWithQuery, {
         method: options?.method || 'GET',
         body: options?.body ? JSON.stringify(options.body) : undefined,
-        headers: {
-          'Authorization': `privateKey ${this.options.apiKey}`,
-        }
+        credentials: "include"
       }, `CloudQuote ${path}`);
     } catch (err: any) {
+      this.app.serviceError(this, `CloudQuote RPC failed: ${path}`, err);
+
       if (err.status) {
         throw new CloudQuoteError(err.details, `HTTP ${err.status}: ${err.message}`);
       }
-      throw new CloudQuoteError(err, `Failed request to ${path}`);
+      throw new CloudQuoteError(err, `Failed request to ${path}, ${err.message}`);
     }
   }
 }

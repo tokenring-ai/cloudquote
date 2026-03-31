@@ -21,7 +21,7 @@ export default createRPCEndpoint(CloudQuoteRpcSchema, {
   },
 
   async getHeadlinesBySecurity(args, app: TokenRingApp) {
-    return app.requireService(CloudQuoteService).getHeadlinesBySecurity(args);
+    return app.requireService(CloudQuoteService).getJSON('newsrpm/getHeadlinesBySecurity', args)
   },
 
   async getPriceChart(args, app: TokenRingApp) {
