@@ -1,7 +1,7 @@
 {
   "name": "@tokenring-ai/cloudquote",
   "version": "0.2.0",
-  "description": "CloudQuote financial data tools for TokenRing Writer",
+  "description": "Real-time market data, quotes, and financial headlines for specialized analysis.",
   "type": "module",
   "main": "index.ts",
   "dependencies": {

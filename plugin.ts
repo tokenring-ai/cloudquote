@@ -9,26 +9,29 @@ import {CloudQuoteServiceOptionsSchema} from "./schema.ts";
 import tools from "./tools.ts";
 
 const packageConfigSchema = z.object({
-  cloudquote: CloudQuoteServiceOptionsSchema.nullable().prefault(() => {
-    if (process.env.CLOUDQUOTE_API_KEY) {
-      return {apiKey: process.env.CLOUDQUOTE_API_KEY};
-    }
-    return null;
-  })
+  cloudquote: CloudQuoteServiceOptionsSchema.optional()
 });
 
 export default {
   name: packageJSON.name,
+  displayName: "CloudQuote Financial Data",
   version: packageJSON.version,
   description: packageJSON.description,
   install(app, config) {
-    app.waitForService(ChatService, chatService =>
-      chatService.addTools(tools)
-    );
-    app.waitForService(RpcService, rpcService => {
-      rpcService.registerEndpoint(cloudquoteRPC);
-    });
+    if (process.env.CLOUDQUOTE_API_KEY) {
+      config.cloudquote ??= {
+        apiKey: process.env.CLOUDQUOTE_API_KEY
+      };
+    }
+    //console.log(config.cloudquote);
+
     if (config.cloudquote) {
+      app.waitForService(ChatService, chatService =>
+        chatService.addTools(tools)
+      );
+      app.waitForService(RpcService, rpcService => {
+        rpcService.registerEndpoint(cloudquoteRPC);
+      });
       app.addServices(new CloudQuoteService(app, config.cloudquote));
     }
   },
