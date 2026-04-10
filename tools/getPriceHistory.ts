@@ -1,5 +1,5 @@
-import Agent from "@tokenring-ai/agent/Agent";
-import {TokenRingToolDefinition, type TokenRingToolJSONResult} from "@tokenring-ai/chat/schema";
+import type Agent from "@tokenring-ai/agent/Agent";
+import type {TokenRingToolDefinition, TokenRingToolJSONResult,} from "@tokenring-ai/chat/schema";
 import {format, toZonedTime} from "date-fns-tz";
 import {z} from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
@@ -17,30 +17,49 @@ async function execute(
     throw new Error("symbol is required");
   }
 
-  const result = await cloudQuoteService.getJSON('fcon/getPriceHistory', {symbol, from, to});
+  const result = await cloudQuoteService.getJSON("fcon/getPriceHistory", {
+    symbol,
+    from,
+    to,
+  });
   if (!result || !Array.isArray(result.rows)) {
     throw new Error("Invalid response from getPriceHistory API");
   }
 
   const rows = result.rows;
-  for (let row of rows) {
+  for (const row of rows) {
     if (row[0]) {
-      const zoned = toZonedTime(row[0], 'America/New_York');
-      row[0] = format(zoned, 'yyyy-MM-dd');
+      const zoned = toZonedTime(row[0], "America/New_York");
+      row[0] = format(zoned, "yyyy-MM-dd");
     }
   }
 
-  return { type: 'json', data: rows };
+  return {type: "json", data: rows};
 }
 
-const description = "Fetch historical daily price data for a symbol. To use this API correctly, request a date range 1 day ahead and 1 day behind the date you are looking for";
+const description =
+  "Fetch historical daily price data for a symbol. To use this API correctly, request a date range 1 day ahead and 1 day behind the date you are looking for";
 
 const inputSchema = z.object({
   symbol: z.string().describe("Ticker symbol."),
-  from: z.string().describe("Start date (YYYY-MM-DD). Must be at least 1 day before date requested").optional(),
-  to: z.string().describe("End date (YYYY-MM-DD). Must be at least 1 day after date requested").optional(),
+  from: z
+    .string()
+    .describe(
+      "Start date (YYYY-MM-DD). Must be at least 1 day before date requested",
+    )
+    .optional(),
+  to: z
+    .string()
+    .describe(
+      "End date (YYYY-MM-DD). Must be at least 1 day after date requested",
+    )
+    .optional(),
 });
 
 export default {
-  name, displayName, description, inputSchema, execute,
+  name,
+  displayName,
+  description,
+  inputSchema,
+  execute,
 } satisfies TokenRingToolDefinition<typeof inputSchema>;

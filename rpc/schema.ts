@@ -1,5 +1,5 @@
 import {z} from "zod";
-import {CloudQuoteQuoteHistoricalItemSchema, CloudQuoteQuoteIntradayItemSchema, CloudQuoteQuoteSchema} from "../schema.ts";
+import {CloudQuoteQuoteHistoricalItemSchema, CloudQuoteQuoteIntradayItemSchema, CloudQuoteQuoteSchema,} from "../schema.ts";
 
 const CloudQuoteRpcSchema = {
   name: "CloudQuote RPC",
@@ -11,9 +11,7 @@ const CloudQuoteRpcSchema = {
         symbols: z.array(z.string()),
       }),
       result: z.object({
-        rows: z.array(
-          CloudQuoteQuoteSchema.nullable()
-        )
+        rows: z.array(CloudQuoteQuoteSchema.nullable()),
       }),
     },
     getPriceHistory: {
@@ -24,7 +22,7 @@ const CloudQuoteRpcSchema = {
         to: z.string().optional(),
       }),
       result: z.object({
-        rows: z.array(CloudQuoteQuoteHistoricalItemSchema)
+        rows: z.array(CloudQuoteQuoteHistoricalItemSchema),
       }),
     },
     getPriceTicks: {
@@ -46,9 +44,7 @@ const CloudQuoteRpcSchema = {
         maxPrice: z.number().optional(),
       }),
       result: z.object({
-        rows: z.array(
-          CloudQuoteQuoteSchema.nullable()
-        )
+        rows: z.array(CloudQuoteQuoteSchema.nullable()),
       }),
     },
     getHeadlinesBySecurity: {

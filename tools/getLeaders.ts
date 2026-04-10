@@ -1,5 +1,5 @@
-import Agent from "@tokenring-ai/agent/Agent";
-import {TokenRingToolDefinition, type TokenRingToolJSONResult} from "@tokenring-ai/chat/schema";
+import type Agent from "@tokenring-ai/agent/Agent";
+import type {TokenRingToolDefinition, TokenRingToolJSONResult,} from "@tokenring-ai/chat/schema";
 import {z} from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
@@ -15,24 +15,43 @@ async function execute(
     throw new Error("list is required");
   }
 
-  const result = await cloudQuoteService.getJSON('fcon/getLeaders', {list, type, limit, minPrice, maxPrice});
+  const result = await cloudQuoteService.getJSON("fcon/getLeaders", {
+    list,
+    type,
+    limit,
+    minPrice,
+    maxPrice,
+  });
   if (!result || !Array.isArray(result.data)) {
     throw new Error("Invalid response from getLeaders API");
   }
 
-  return { type: 'json', data: result.data };
+  return {type: "json", data: result.data};
 }
 
-const description = "Get a list of stocks that are notable today (most active by volume, highest percent gainers, biggest percent losers, or most popular stocks).";
+const description =
+  "Get a list of stocks that are notable today (most active by volume, highest percent gainers, biggest percent losers, or most popular stocks).";
 
 const inputSchema = z.object({
-  list: z.enum(["MOSTACTIVE", "PERCENTGAINERS", "PERCENTLOSERS"]).describe("Type of list."),
+  list: z
+    .enum(["MOSTACTIVE", "PERCENTGAINERS", "PERCENTLOSERS"])
+    .describe("Type of list."),
   type: z.enum(["STOCK", "ETF"]).describe("Security type.").optional(),
-  limit: z.number().int().min(1).max(50).describe("Max number of results.").optional(),
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(50)
+    .describe("Max number of results.")
+    .optional(),
   minPrice: z.number().optional(),
-  maxPrice: z.number().optional()
+  maxPrice: z.number().optional(),
 });
 
 export default {
-  name, displayName, description, inputSchema, execute,
+  name,
+  displayName,
+  description,
+  inputSchema,
+  execute,
 } satisfies TokenRingToolDefinition<typeof inputSchema>;

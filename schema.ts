@@ -17,7 +17,7 @@ export const CloudQuoteQuoteHistoricalItemSchema = z.tuple([
 export const CloudQuoteQuoteIntradayItemSchema = z.tuple([
   z.number().describe("Timestamp in epoch nanoseconds"),
   z.number().describe("Price"),
-  z.number().describe("Cumulative Volume")
+  z.number().describe("Cumulative Volume"),
 ]);
 
 export const CloudQuoteQuoteSchema = z.object({
@@ -142,4 +142,6 @@ export const CloudQuoteQuoteSchema = z.object({
   CIK: z.string().optional(),
 });
 
-export type CloudQuoteServiceOptions = z.infer<typeof CloudQuoteServiceOptionsSchema>;
+export type CloudQuoteServiceOptions = z.infer<
+  typeof CloudQuoteServiceOptionsSchema
+>;

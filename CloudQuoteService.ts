@@ -1,17 +1,22 @@
-import TokenRingApp from "@tokenring-ai/app";
-import {TokenRingService} from "@tokenring-ai/app/types";
+import type TokenRingApp from "@tokenring-ai/app";
+import type {TokenRingService} from "@tokenring-ai/app/types";
 import {doFetchWithRetry} from "@tokenring-ai/utility/http/doFetchWithRetry";
 import {HttpService} from "@tokenring-ai/utility/http/HttpService";
 import type {CloudQuoteServiceOptions} from "./schema.ts";
 
 export class CloudQuoteError extends Error {
-  constructor(public readonly cause: unknown, message: string) {
+  constructor(
+    public readonly cause: unknown,
+    message: string,
+  ) {
     super(message);
     this.name = "CloudQuoteError";
   }
 }
 
-export default class CloudQuoteService extends HttpService implements TokenRingService {
+export default class CloudQuoteService
+  extends HttpService
+  implements TokenRingService {
   readonly name = "CloudQuote";
   description = "Service for accessing CloudQuote financial data API";
 
@@ -19,11 +24,14 @@ export default class CloudQuoteService extends HttpService implements TokenRingS
   protected defaultHeaders: Record<string, string>;
   private readonly timeout = 10_000;
 
-  constructor(private readonly app: TokenRingApp, private readonly options: CloudQuoteServiceOptions) {
+  constructor(
+    private readonly app: TokenRingApp,
+    private readonly options: CloudQuoteServiceOptions,
+  ) {
     super();
     this.defaultHeaders = {
-      'Authorization': `privateKey ${this.options.apiKey}`,
-      'Content-Type': 'application/json'
+      Authorization: `privateKey ${this.options.apiKey}`,
+      "Content-Type": "application/json",
     };
   }
 
@@ -33,73 +41,89 @@ export default class CloudQuoteService extends HttpService implements TokenRingS
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
-      const response = await doFetchWithRetry(
-        "http://api.newsrpm.com",
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `privateKey ${this.options.apiKey}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(params),
-          signal: controller.signal
-        }
-      );
+      const response = await doFetchWithRetry("http://api.newsrpm.com", {
+        method: "POST",
+        headers: {
+          Authorization: `privateKey ${this.options.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(params),
+        signal: controller.signal,
+      });
 
       clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorData = await response.text();
-        throw new CloudQuoteError(errorData, `HTTP ${response.status}: ${response.statusText}`);
+        throw new CloudQuoteError(
+          errorData,
+          `HTTP ${response.status}: ${response.statusText}`,
+        );
       }
 
       return await response.json();
     } catch (err) {
       if (err instanceof CloudQuoteError) throw err;
-      throw new CloudQuoteError(err, 'Failed to get headlines by security');
+      throw new CloudQuoteError(err, "Failed to get headlines by security");
     }
   }
 
-  async getJSON(apiPath: string, params: Record<string, string|number|undefined|null>) {
+  getJSON(
+    apiPath: string,
+    params: Record<string, string | number | undefined | null>,
+  ) {
     return this.request<any>(apiPath, params);
   }
 
-
-  async getPriceChart(params: any) {
-    const { symbol, interval } = params;
+  getPriceChart(params: any) {
+    const {symbol, interval} = params;
     const uri = `https://chart.financialcontent.com/Chart?shwidth=3&fillshx=0&height=200&lncolor=2466BA&interval=${interval}&fillshy=0&gtcolor=2466BA&vucolor=008000&bvcolor=FFFFFF&gmcolor=DDDDDD&shcolor=BBBBBB&grcolor=FFFFFF&vdcolor=FF0000&brcolor=FFFFFF&gbcolor=FFFFFF&lnwidth=2&volume=0&pvcolor=B50000&mkcolor=CD5252&itcolor=666666&fillalpha=0&ticker=${symbol}&Client=stocks&txcolor=BBBBBB&output=svg&bgcolor=FFFFFF&arcolor=null&type=0&width=375`;
-    return { svgDataUri: uri };
+    return {svgDataUri: uri};
   }
 
-  private async request<T>(path: string, params?: Record<string, any>, options?: { method?: string; body?: any }): Promise<T> {
+  private async request<T>(
+    path: string,
+    params?: Record<string, any>,
+    options?: { method?: string; body?: any },
+  ): Promise<T> {
     try {
       const queryParams = new URLSearchParams();
       if (params) {
         const filtered = Object.fromEntries(
-          Object.entries(params).filter(([, v]) => v != null)
+          Object.entries(params).filter(([, v]) => v != null),
         );
         Object.entries(filtered).forEach(([key, value]) => {
           queryParams.set(key, String(value));
         });
       }
 
-      queryParams.set('T', this.options.apiKey);
+      queryParams.set("T", this.options.apiKey);
 
-      const pathWithQuery = `${path}.json${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      const pathWithQuery = `${path}.json${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
       this.app.serviceOutput(this, `CloudQuote RPC: ${pathWithQuery}`);
 
-      return await this.fetchJson(pathWithQuery, {
-        method: options?.method || 'GET',
-        body: options?.body ? JSON.stringify(options.body) : undefined,
-        credentials: "include"
-      }, `CloudQuote ${path}`);
+      return await this.fetchJson(
+        pathWithQuery,
+        {
+          method: options?.method || "GET",
+          body: options?.body ? JSON.stringify(options.body) : undefined,
+          credentials: "include",
+        },
+        `CloudQuote ${path}`,
+      );
     } catch (err: any) {
       this.app.serviceError(this, `CloudQuote RPC failed: ${path}`, err);
 
       if (err.status) {
-        throw new CloudQuoteError(err.details, `HTTP ${err.status}: ${err.message}`);
+        throw new CloudQuoteError(
+          err.details,
+          `HTTP ${err.status}: ${err.message}`,
+        );
       }
-      throw new CloudQuoteError(err, `Failed request to ${path}, ${err.message}`);
+      throw new CloudQuoteError(
+        err,
+        `Failed request to ${path}, ${err.message}`,
+      );
     }
   }
 }
