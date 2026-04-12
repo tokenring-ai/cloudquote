@@ -1,5 +1,5 @@
 import type Agent from "@tokenring-ai/agent/Agent";
-import type {TokenRingToolDefinition, TokenRingToolJSONResult,} from "@tokenring-ai/chat/schema";
+import type {TokenRingToolDefinition, TokenRingToolResult} from "@tokenring-ai/chat/schema";
 import {z} from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
@@ -9,7 +9,7 @@ const displayName = "Cloudquote/getLeaders";
 async function execute(
   {list, type, limit, minPrice, maxPrice}: z.output<typeof inputSchema>,
   agent: Agent,
-): Promise<TokenRingToolJSONResult<any>> {
+): Promise<TokenRingToolResult> {
   const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
   if (!list) {
     throw new Error("list is required");
@@ -26,7 +26,7 @@ async function execute(
     throw new Error("Invalid response from getLeaders API");
   }
 
-  return {type: "json", data: result.data};
+  return JSON.stringify(result.data);
 }
 
 const description =

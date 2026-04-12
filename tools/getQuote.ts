@@ -1,5 +1,5 @@
 import type Agent from "@tokenring-ai/agent/Agent";
-import type {TokenRingToolDefinition, TokenRingToolJSONResult,} from "@tokenring-ai/chat/schema";
+import type {TokenRingToolDefinition, TokenRingToolResult} from "@tokenring-ai/chat/schema";
 import {z} from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
@@ -9,17 +9,15 @@ const displayName = "Cloudquote/getQuote";
 async function execute(
   {symbols}: z.output<typeof inputSchema>,
   agent: Agent,
-): Promise<TokenRingToolJSONResult<any>> {
+): Promise<TokenRingToolResult> {
   const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
   if (!symbols || symbols.length === 0) {
     throw new Error("symbols array is required and cannot be empty");
   }
-  return {
-    type: "json",
-    data: await cloudQuoteService.getJSON("fcon/getQuote", {
-      symbol: symbols.join(","),
-    }),
-  };
+  const data = await cloudQuoteService.getJSON("fcon/getQuote", {
+    symbol: symbols.join(","),
+  });
+  return JSON.stringify(data);
 }
 
 const description = "Retrieve pricing and metadata for given security symbols.";

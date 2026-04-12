@@ -1,5 +1,5 @@
 import type Agent from "@tokenring-ai/agent/Agent";
-import type {TokenRingToolDefinition, TokenRingToolJSONResult,} from "@tokenring-ai/chat/schema";
+import type {TokenRingToolDefinition, TokenRingToolResult} from "@tokenring-ai/chat/schema";
 import {format, toZonedTime} from "date-fns-tz";
 import {z} from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
@@ -10,7 +10,7 @@ const displayName = "Cloudquote/getPriceHistory";
 async function execute(
   {symbol, from, to}: z.output<typeof inputSchema>,
   agent: Agent,
-): Promise<TokenRingToolJSONResult<any>> {
+): Promise<TokenRingToolResult> {
   const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
 
   if (!symbol) {
@@ -34,7 +34,7 @@ async function execute(
     }
   }
 
-  return {type: "json", data: rows};
+  return JSON.stringify(rows);
 }
 
 const description =

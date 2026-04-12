@@ -1,5 +1,5 @@
 import type Agent from "@tokenring-ai/agent/Agent";
-import type {TokenRingToolDefinition, TokenRingToolJSONResult,} from "@tokenring-ai/chat/schema";
+import type {TokenRingToolDefinition, TokenRingToolResult} from "@tokenring-ai/chat/schema";
 import {z} from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
@@ -9,15 +9,19 @@ const displayName = "Cloudquote/getHeadlinesBySecurity";
 async function execute(
   {symbols, start, count, minDate, maxDate}: z.output<typeof inputSchema>,
   agent: Agent,
-): Promise<TokenRingToolJSONResult<any>> {
+): Promise<TokenRingToolResult> {
   const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
   if (!symbols) {
     throw new Error("symbols is required");
   }
-  const result = await cloudQuoteService.getJSON(
-    "fcon/getHeadlinesBySecurity",
-    {symbols, start, count, minDate, maxDate},
-  );
+  // Note: This calls the service method which uses NewsRPM API (http://api.newsrpm.com)
+  const result = await cloudQuoteService.getHeadlinesBySecurity({
+    symbols,
+    start,
+    count,
+    minDate,
+    maxDate,
+  });
   if (!result || !Array.isArray(result.rows)) {
     throw new Error("Invalid response from getHeadlinesBySecurity API");
   }
@@ -29,7 +33,7 @@ async function execute(
     }
   }
 
-  return {type: "json", data: rows};
+  return JSON.stringify(rows);
 }
 
 const description =

@@ -1,5 +1,5 @@
 import {z} from "zod";
-import {CloudQuoteQuoteHistoricalItemSchema, CloudQuoteQuoteIntradayItemSchema, CloudQuoteQuoteSchema,} from "../schema.ts";
+import {CloudQuoteQuoteHistoricalItemSchema, CloudQuoteQuoteIntradayItemSchema, CloudQuoteQuoteSchema} from "../schema.ts";
 
 const CloudQuoteRpcSchema = {
   name: "CloudQuote RPC",
