@@ -62,7 +62,7 @@ export default class CloudQuoteService
       }
 
       return await response.json();
-    } catch (err) {
+    } catch (err: unknown) {
       if (err instanceof CloudQuoteError) throw err;
       throw new CloudQuoteError(err, "Failed to get headlines by security");
     }
