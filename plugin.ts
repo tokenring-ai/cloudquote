@@ -27,7 +27,7 @@ export default {
 
     if (config.cloudquote) {
       app.waitForService(ChatService, (chatService) =>
-        chatService.addTools(tools),
+        chatService.addTools(...tools),
       );
       app.waitForService(RpcService, (rpcService) => {
         rpcService.registerEndpoint(cloudquoteRPC);
