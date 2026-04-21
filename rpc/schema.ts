@@ -1,5 +1,5 @@
-import {z} from "zod";
-import {CloudQuoteQuoteHistoricalItemSchema, CloudQuoteQuoteIntradayItemSchema, CloudQuoteQuoteSchema} from "../schema.ts";
+import { z } from "zod";
+import { CloudQuoteQuoteHistoricalItemSchema, CloudQuoteQuoteIntradayItemSchema, CloudQuoteQuoteSchema } from "../schema.ts";
 
 const CloudQuoteRpcSchema = {
   name: "CloudQuote RPC",
@@ -18,8 +18,8 @@ const CloudQuoteRpcSchema = {
       type: "query" as const,
       input: z.object({
         symbol: z.string(),
-        from: z.string().optional(),
-        to: z.string().optional(),
+        from: z.string().exactOptional(),
+        to: z.string().exactOptional(),
       }),
       result: z.object({
         rows: z.array(CloudQuoteQuoteHistoricalItemSchema),
@@ -38,10 +38,10 @@ const CloudQuoteRpcSchema = {
       type: "query" as const,
       input: z.object({
         list: z.enum(["MOSTACTIVE", "PERCENTGAINERS", "PERCENTLOSERS"]),
-        type: z.enum(["STOCK", "ETF"]).optional(),
-        limit: z.number().min(1).max(50).optional(),
-        minPrice: z.number().optional(),
-        maxPrice: z.number().optional(),
+        type: z.enum(["STOCK", "ETF"]).exactOptional(),
+        limit: z.number().min(1).max(50).exactOptional(),
+        minPrice: z.number().exactOptional(),
+        maxPrice: z.number().exactOptional(),
       }),
       result: z.object({
         rows: z.array(CloudQuoteQuoteSchema.nullable()),
@@ -51,10 +51,10 @@ const CloudQuoteRpcSchema = {
       type: "query" as const,
       input: z.object({
         symbols: z.string(),
-        start: z.number().optional(),
-        count: z.number().optional(),
-        minDate: z.string().optional(),
-        maxDate: z.string().optional(),
+        start: z.number().exactOptional(),
+        count: z.number().exactOptional(),
+        minDate: z.string().exactOptional(),
+        maxDate: z.string().exactOptional(),
       }),
       result: z.object({
         data: z.any(),

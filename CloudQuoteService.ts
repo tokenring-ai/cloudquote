@@ -1,8 +1,8 @@
 import type TokenRingApp from "@tokenring-ai/app";
-import type {TokenRingService} from "@tokenring-ai/app/types";
-import {doFetchWithRetry} from "@tokenring-ai/utility/http/doFetchWithRetry";
-import {HttpService} from "@tokenring-ai/utility/http/HttpService";
-import type {CloudQuoteServiceOptions} from "./schema.ts";
+import type { TokenRingService } from "@tokenring-ai/app/types";
+import { doFetchWithRetry } from "@tokenring-ai/utility/http/doFetchWithRetry";
+import { HttpService } from "@tokenring-ai/utility/http/HttpService";
+import type { CloudQuoteServiceOptions } from "./schema.ts";
 
 export class CloudQuoteError extends Error {
   constructor(
@@ -14,9 +14,7 @@ export class CloudQuoteError extends Error {
   }
 }
 
-export default class CloudQuoteService
-  extends HttpService
-  implements TokenRingService {
+export default class CloudQuoteService extends HttpService implements TokenRingService {
   readonly name = "CloudQuote";
   description = "Service for accessing CloudQuote financial data API";
 
@@ -55,10 +53,7 @@ export default class CloudQuoteService
 
       if (!response.ok) {
         const errorData = await response.text();
-        throw new CloudQuoteError(
-          errorData,
-          `HTTP ${response.status}: ${response.statusText}`,
-        );
+        throw new CloudQuoteError(errorData, `HTTP ${response.status}: ${response.statusText}`);
       }
 
       return await response.json();
@@ -68,30 +63,21 @@ export default class CloudQuoteService
     }
   }
 
-  getJSON(
-    apiPath: string,
-    params: Record<string, string | number | undefined | null>,
-  ) {
+  getJSON(apiPath: string, params: Record<string, string | number | undefined | null>) {
     return this.request<any>(apiPath, params);
   }
 
   getPriceChart(params: any) {
-    const {symbol, interval} = params;
+    const { symbol, interval } = params;
     const uri = `https://chart.financialcontent.com/Chart?shwidth=3&fillshx=0&height=200&lncolor=2466BA&interval=${interval}&fillshy=0&gtcolor=2466BA&vucolor=008000&bvcolor=FFFFFF&gmcolor=DDDDDD&shcolor=BBBBBB&grcolor=FFFFFF&vdcolor=FF0000&brcolor=FFFFFF&gbcolor=FFFFFF&lnwidth=2&volume=0&pvcolor=B50000&mkcolor=CD5252&itcolor=666666&fillalpha=0&ticker=${symbol}&Client=stocks&txcolor=BBBBBB&output=svg&bgcolor=FFFFFF&arcolor=null&type=0&width=375`;
-    return {svgDataUri: uri};
+    return { svgDataUri: uri };
   }
 
-  private async request<T>(
-    path: string,
-    params?: Record<string, any>,
-    options?: { method?: string; body?: any },
-  ): Promise<T> {
+  private async request<T>(path: string, params?: Record<string, any>, options?: { method?: string | undefined; body?: any }): Promise<T> {
     try {
       const queryParams = new URLSearchParams();
       if (params) {
-        const filtered = Object.fromEntries(
-          Object.entries(params).filter(([, v]) => v != null),
-        );
+        const filtered = Object.fromEntries(Object.entries(params).filter(([, v]) => v != null));
         Object.entries(filtered).forEach(([key, value]) => {
           queryParams.set(key, String(value));
         });
@@ -106,7 +92,9 @@ export default class CloudQuoteService
         pathWithQuery,
         {
           method: options?.method || "GET",
-          body: options?.body ? JSON.stringify(options.body) : undefined,
+          ...(options?.body && {
+            body: JSON.stringify(options.body),
+          }),
           credentials: "include",
         },
         `CloudQuote ${path}`,
@@ -115,15 +103,9 @@ export default class CloudQuoteService
       this.app.serviceError(this, `CloudQuote RPC failed: ${path}`, err);
 
       if (err.status) {
-        throw new CloudQuoteError(
-          err.details,
-          `HTTP ${err.status}: ${err.message}`,
-        );
+        throw new CloudQuoteError(err.details, `HTTP ${err.status}: ${err.message}`);
       }
-      throw new CloudQuoteError(
-        err,
-        `Failed request to ${path}, ${err.message}`,
-      );
+      throw new CloudQuoteError(err, `Failed request to ${path}, ${err.message}`);
     }
   }
 }

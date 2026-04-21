@@ -1,1 +1,1 @@
-export {default as CloudQuoteService, CloudQuoteError} from "./CloudQuoteService.ts";
+export { CloudQuoteError, default as CloudQuoteService } from "./CloudQuoteService.ts";

@@ -1,16 +1,13 @@
 import type Agent from "@tokenring-ai/agent/Agent";
-import type {TokenRingToolDefinition, TokenRingToolResult} from "@tokenring-ai/chat/schema";
-import {format, toZonedTime} from "date-fns-tz";
-import {z} from "zod";
+import type { TokenRingToolDefinition, TokenRingToolResult } from "@tokenring-ai/chat/schema";
+import { format, toZonedTime } from "date-fns-tz";
+import { z } from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
 const name = "cloudquote_getPriceHistory";
 const displayName = "Cloudquote/getPriceHistory";
 
-async function execute(
-  {symbol, from, to}: z.output<typeof inputSchema>,
-  agent: Agent,
-): Promise<TokenRingToolResult> {
+async function execute({ symbol, from, to }: z.output<typeof inputSchema>, agent: Agent): Promise<TokenRingToolResult> {
   const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
 
   if (!symbol) {
@@ -42,18 +39,8 @@ const description =
 
 const inputSchema = z.object({
   symbol: z.string().describe("Ticker symbol."),
-  from: z
-    .string()
-    .describe(
-      "Start date (YYYY-MM-DD). Must be at least 1 day before date requested",
-    )
-    .optional(),
-  to: z
-    .string()
-    .describe(
-      "End date (YYYY-MM-DD). Must be at least 1 day after date requested",
-    )
-    .optional(),
+  from: z.string().describe("Start date (YYYY-MM-DD). Must be at least 1 day before date requested").exactOptional(),
+  to: z.string().describe("End date (YYYY-MM-DD). Must be at least 1 day after date requested").exactOptional(),
 });
 
 export default {

@@ -22,126 +22,124 @@ export const CloudQuoteQuoteIntradayItemSchema = z.tuple([
 
 export const CloudQuoteQuoteSchema = z.object({
   // Core identification fields
-  SymbolID: z.string().optional(),
-  Symbol: z.string().optional(),
-  Name: z.string().optional(),
-  ShortName: z.string().optional(),
+  SymbolID: z.string().exactOptional(),
+  Symbol: z.string().exactOptional(),
+  Name: z.string().exactOptional(),
+  ShortName: z.string().exactOptional(),
 
   // Price fields
-  Price: z.number().optional(),
-  PrevClose: z.number().optional(),
-  Ask: z.number().optional(),
-  Bid: z.number().optional(),
-  High: z.number().optional(),
-  Low: z.number().optional(),
-  Open: z.number().optional(),
-  AfterHoursPrice: z.number().optional(),
+  Price: z.number().exactOptional(),
+  PrevClose: z.number().exactOptional(),
+  Ask: z.number().exactOptional(),
+  Bid: z.number().exactOptional(),
+  High: z.number().exactOptional(),
+  Low: z.number().exactOptional(),
+  Open: z.number().exactOptional(),
+  AfterHoursPrice: z.number().exactOptional(),
 
   // Calculated price fields (added by transformRow)
-  Change: z.number().optional(),
-  ChangePercent: z.number().optional(),
+  Change: z.number().exactOptional(),
+  ChangePercent: z.number().exactOptional(),
 
   // Size fields
-  AskSize: z.number().optional(),
-  BidSize: z.number().optional(),
+  AskSize: z.number().exactOptional(),
+  BidSize: z.number().exactOptional(),
 
   // Time fields
-  LastTradeTime: z.number().optional(),
-  AfterHoursTradeTime: z.number().optional(),
+  LastTradeTime: z.number().exactOptional(),
+  AfterHoursTradeTime: z.number().exactOptional(),
 
   // Volume fields
-  Volume: z.number().optional(),
-  AverageVolume: z.number().optional(),
-  AvgVolume1M: z.number().optional(),
-  AvgVolume1W: z.number().optional(),
-  AvgVolume3M: z.number().optional(),
-  AvgVolume52: z.number().optional(),
-  AvgVolume6M: z.number().optional(),
-  AvgVolumeYTD: z.number().optional(),
+  Volume: z.number().exactOptional(),
+  AverageVolume: z.number().exactOptional(),
+  AvgVolume1M: z.number().exactOptional(),
+  AvgVolume1W: z.number().exactOptional(),
+  AvgVolume3M: z.number().exactOptional(),
+  AvgVolume52: z.number().exactOptional(),
+  AvgVolume6M: z.number().exactOptional(),
+  AvgVolumeYTD: z.number().exactOptional(),
 
   // Dividend fields (feature gated)
-  AnnualDividend: z.number().optional(),
-  TTMDividend: z.number().optional(),
-  YTDDividend: z.number().optional(),
-  LatestDividendDate: z.number().optional(),
-  LatestDividend: z.number().optional(),
+  AnnualDividend: z.number().exactOptional(),
+  TTMDividend: z.number().exactOptional(),
+  YTDDividend: z.number().exactOptional(),
+  LatestDividendDate: z.number().exactOptional(),
+  LatestDividend: z.number().exactOptional(),
 
   // Financial fields (feature gated)
-  EPS: z.number().optional(),
-  SharesOutstanding: z.number().optional(),
+  EPS: z.number().exactOptional(),
+  SharesOutstanding: z.number().exactOptional(),
 
   // Exchange information
-  ExchangeName: z.string().optional(),
-  ExchangeShortName: z.string().optional(),
-  ExchangePrefixCode: z.string().optional(),
-  ExchangeDefaultCurrency: z.string().optional(),
+  ExchangeName: z.string().exactOptional(),
+  ExchangeShortName: z.string().exactOptional(),
+  ExchangePrefixCode: z.string().exactOptional(),
+  ExchangeDefaultCurrency: z.string().exactOptional(),
 
   // Security type information (added by typeMap)
-  SecurityTypeName: z.string().optional(),
-  SecurityTypeCode: z.string().optional(),
+  SecurityTypeName: z.string().exactOptional(),
+  SecurityTypeCode: z.string().exactOptional(),
 
   // Currency information (added by currencyMap)
-  NominalCurrencyCode: z.string().optional(),
-  NominalCurrencyName: z.string().optional(),
+  NominalCurrencyCode: z.string().exactOptional(),
+  NominalCurrencyName: z.string().exactOptional(),
 
   // Starting prices
-  StartingPrice1M: z.number().optional(),
-  StartingPrice1W: z.number().optional(),
-  StartingPrice3M: z.number().optional(),
-  StartingPrice52: z.number().optional(),
-  StartingPrice6M: z.number().optional(),
-  StartingPriceYTD: z.number().optional(),
+  StartingPrice1M: z.number().exactOptional(),
+  StartingPrice1W: z.number().exactOptional(),
+  StartingPrice3M: z.number().exactOptional(),
+  StartingPrice52: z.number().exactOptional(),
+  StartingPrice6M: z.number().exactOptional(),
+  StartingPriceYTD: z.number().exactOptional(),
 
   // Low dates (converted to timestamps)
-  Low1MDate: z.number().optional(),
-  Low1WDate: z.number().optional(),
-  Low3MDate: z.number().optional(),
-  Low52Date: z.number().optional(),
-  Low6MDate: z.number().optional(),
+  Low1MDate: z.number().exactOptional(),
+  Low1WDate: z.number().exactOptional(),
+  Low3MDate: z.number().exactOptional(),
+  Low52Date: z.number().exactOptional(),
+  Low6MDate: z.number().exactOptional(),
 
   // Low values
-  Low1M: z.number().optional(),
-  Low1W: z.number().optional(),
-  Low3M: z.number().optional(),
-  Low52: z.number().optional(),
-  Low6M: z.number().optional(),
-  LowYTD: z.number().optional(),
+  Low1M: z.number().exactOptional(),
+  Low1W: z.number().exactOptional(),
+  Low3M: z.number().exactOptional(),
+  Low52: z.number().exactOptional(),
+  Low6M: z.number().exactOptional(),
+  LowYTD: z.number().exactOptional(),
 
   // High dates (converted to timestamps)
-  High1MDate: z.number().optional(),
-  High1WDate: z.number().optional(),
-  High3MDate: z.number().optional(),
-  High52Date: z.number().optional(),
-  High6MDate: z.number().optional(),
+  High1MDate: z.number().exactOptional(),
+  High1WDate: z.number().exactOptional(),
+  High3MDate: z.number().exactOptional(),
+  High52Date: z.number().exactOptional(),
+  High6MDate: z.number().exactOptional(),
 
   // High values
-  High1M: z.number().optional(),
-  High1W: z.number().optional(),
-  High3M: z.number().optional(),
-  High52: z.number().optional(),
-  High6M: z.number().optional(),
-  HighYTD: z.number().optional(),
+  High1M: z.number().exactOptional(),
+  High1W: z.number().exactOptional(),
+  High3M: z.number().exactOptional(),
+  High52: z.number().exactOptional(),
+  High6M: z.number().exactOptional(),
+  HighYTD: z.number().exactOptional(),
 
   // Chart fields
-  ChartStartTime: z.number().optional(),
-  ChartEndTime: z.number().optional(),
-  HolidayName: z.string().optional(),
+  ChartStartTime: z.number().exactOptional(),
+  ChartEndTime: z.number().exactOptional(),
+  HolidayName: z.string().exactOptional(),
 
   // Moving averages
-  MovingAverage50: z.number().optional(),
-  MovingAverage200: z.number().optional(),
+  MovingAverage50: z.number().exactOptional(),
+  MovingAverage200: z.number().exactOptional(),
 
   // Recent close fields
-  MostRecentClose: z.number().optional(),
-  MostRecentCloseDate: z.number().optional(),
-  LessRecentClose: z.number().optional(),
-  LessRecentCloseDate: z.number().optional(),
+  MostRecentClose: z.number().exactOptional(),
+  MostRecentCloseDate: z.number().exactOptional(),
+  LessRecentClose: z.number().exactOptional(),
+  LessRecentCloseDate: z.number().exactOptional(),
 
   // Other fields
-  Delay: z.number().optional(),
-  CIK: z.string().optional(),
+  Delay: z.number().exactOptional(),
+  CIK: z.string().exactOptional(),
 });
 
-export type CloudQuoteServiceOptions = z.infer<
-  typeof CloudQuoteServiceOptionsSchema
->;
+export type CloudQuoteServiceOptions = z.infer<typeof CloudQuoteServiceOptionsSchema>;

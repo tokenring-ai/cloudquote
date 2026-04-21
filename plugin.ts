@@ -1,15 +1,15 @@
-import type {TokenRingPlugin} from "@tokenring-ai/app";
-import {ChatService} from "@tokenring-ai/chat";
-import {RpcService} from "@tokenring-ai/rpc";
-import {z} from "zod";
+import type { TokenRingPlugin } from "@tokenring-ai/app";
+import { ChatService } from "@tokenring-ai/chat";
+import { RpcService } from "@tokenring-ai/rpc";
+import { z } from "zod";
 import CloudQuoteService from "./CloudQuoteService.ts";
-import packageJSON from "./package.json" with {type: "json"};
+import packageJSON from "./package.json" with { type: "json" };
 import cloudquoteRPC from "./rpc/cloudquote.ts";
-import {CloudQuoteServiceOptionsSchema} from "./schema.ts";
+import { CloudQuoteServiceOptionsSchema } from "./schema.ts";
 import tools from "./tools.ts";
 
 const packageConfigSchema = z.object({
-  cloudquote: CloudQuoteServiceOptionsSchema.optional(),
+  cloudquote: CloudQuoteServiceOptionsSchema.exactOptional(),
 });
 
 export default {
@@ -26,10 +26,8 @@ export default {
     //console.log(config.cloudquote);
 
     if (config.cloudquote) {
-      app.waitForService(ChatService, (chatService) =>
-        chatService.addTools(...tools),
-      );
-      app.waitForService(RpcService, (rpcService) => {
+      app.waitForService(ChatService, chatService => chatService.addTools(...tools));
+      app.waitForService(RpcService, rpcService => {
         rpcService.registerEndpoint(cloudquoteRPC);
       });
       app.addServices(new CloudQuoteService(app, config.cloudquote));

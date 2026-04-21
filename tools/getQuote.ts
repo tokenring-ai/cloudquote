@@ -1,15 +1,12 @@
 import type Agent from "@tokenring-ai/agent/Agent";
-import type {TokenRingToolDefinition, TokenRingToolResult} from "@tokenring-ai/chat/schema";
-import {z} from "zod";
+import type { TokenRingToolDefinition, TokenRingToolResult } from "@tokenring-ai/chat/schema";
+import { z } from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
 const name = "cloudquote_getQuote";
 const displayName = "Cloudquote/getQuote";
 
-async function execute(
-  {symbols}: z.output<typeof inputSchema>,
-  agent: Agent,
-): Promise<TokenRingToolResult> {
+async function execute({ symbols }: z.output<typeof inputSchema>, agent: Agent): Promise<TokenRingToolResult> {
   const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
   if (!symbols || symbols.length === 0) {
     throw new Error("symbols array is required and cannot be empty");
@@ -23,11 +20,7 @@ async function execute(
 const description = "Retrieve pricing and metadata for given security symbols.";
 
 const inputSchema = z.object({
-  symbols: z
-    .array(z.string())
-    .describe(
-      "Array of ticker symbols to fetch (e.g. ['AAPL', 'GOOGL', 'MSFT']).",
-    ),
+  symbols: z.array(z.string()).describe("Array of ticker symbols to fetch (e.g. ['AAPL', 'GOOGL', 'MSFT'])."),
 });
 
 export default {
