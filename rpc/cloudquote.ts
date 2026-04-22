@@ -32,7 +32,7 @@ export default createRPCEndpoint(CloudQuoteRpcSchema, {
 
   getHeadlinesBySecurity(args, app: TokenRingApp) {
     // Note: This calls the service method which uses NewsRPM API (http://api.newsrpm.com)
-    return app.requireService(CloudQuoteService).getHeadlinesBySecurity(args);
+    return app.requireService(CloudQuoteService).getHeadlinesBySecurity(args).then(data => ({ data }));
   },
 
   getPriceChart(args, app: TokenRingApp) {

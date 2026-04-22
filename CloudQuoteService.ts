@@ -1,7 +1,7 @@
 import type TokenRingApp from "@tokenring-ai/app";
 import type { TokenRingService } from "@tokenring-ai/app/types";
-import { doFetchWithRetry } from "@tokenring-ai/utility/http/doFetchWithRetry";
-import { HttpService } from "@tokenring-ai/utility/http/HttpService";
+import { HTTPRetriever } from "@tokenring-ai/utility/http/HTTPRetriever";
+import { z } from "zod";
 import type { CloudQuoteServiceOptions } from "./schema.ts";
 
 export class CloudQuoteError extends Error {
@@ -14,49 +14,38 @@ export class CloudQuoteError extends Error {
   }
 }
 
-export default class CloudQuoteService extends HttpService implements TokenRingService {
+export default class CloudQuoteService implements TokenRingService {
   readonly name = "CloudQuote";
   description = "Service for accessing CloudQuote financial data API";
 
-  protected baseUrl = "https://api.cloudquote.io";
-  protected defaultHeaders: Record<string, string>;
-  private readonly timeout = 10_000;
+  private retriever: HTTPRetriever;
 
   constructor(
     private readonly app: TokenRingApp,
     private readonly options: CloudQuoteServiceOptions,
   ) {
-    super();
-    this.defaultHeaders = {
-      Authorization: `privateKey ${this.options.apiKey}`,
-      "Content-Type": "application/json",
-    };
+    this.retriever = new HTTPRetriever({
+      baseUrl: "https://api.cloudquote.io",
+      headers: {
+        Authorization: `privateKey ${this.options.apiKey}`,
+        "Content-Type": "application/json",
+      },
+      timeout: 10_000,
+    });
   }
 
   async getHeadlinesBySecurity(params: any) {
     try {
       // This uses a different base URL, so we need to handle it separately
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
-      const response = await doFetchWithRetry("http://api.newsrpm.com", {
-        method: "POST",
-        headers: {
-          Authorization: `privateKey ${this.options.apiKey}`,
-          "Content-Type": "application/json",
+      return await this.retriever.fetchJson({
+        url: "http://api.newsrpm.com",
+        opts: {
+          method: "POST",
+          body: JSON.stringify(params)
         },
-        body: JSON.stringify(params),
-        signal: controller.signal,
+        context: "CloudQuote headlines by security"
       });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new CloudQuoteError(errorData, `HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      return await response.json();
     } catch (err: unknown) {
       if (err instanceof CloudQuoteError) throw err;
       throw new CloudQuoteError(err, "Failed to get headlines by security");
@@ -67,7 +56,7 @@ export default class CloudQuoteService extends HttpService implements TokenRingS
     return this.request<any>(apiPath, params);
   }
 
-  getPriceChart(params: any) {
+  getPriceChart(params: { symbol: string; interval: string }) {
     const { symbol, interval } = params;
     const uri = `https://chart.financialcontent.com/Chart?shwidth=3&fillshx=0&height=200&lncolor=2466BA&interval=${interval}&fillshy=0&gtcolor=2466BA&vucolor=008000&bvcolor=FFFFFF&gmcolor=DDDDDD&shcolor=BBBBBB&grcolor=FFFFFF&vdcolor=FF0000&brcolor=FFFFFF&gbcolor=FFFFFF&lnwidth=2&volume=0&pvcolor=B50000&mkcolor=CD5252&itcolor=666666&fillalpha=0&ticker=${symbol}&Client=stocks&txcolor=BBBBBB&output=svg&bgcolor=FFFFFF&arcolor=null&type=0&width=375`;
     return { svgDataUri: uri };
@@ -88,17 +77,18 @@ export default class CloudQuoteService extends HttpService implements TokenRingS
       const pathWithQuery = `${path}.json${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
       this.app.serviceOutput(this, `CloudQuote RPC: ${pathWithQuery}`);
 
-      return await this.fetchJson(
-        pathWithQuery,
-        {
+      return await this.retriever.fetchValidatedJson({
+        url: pathWithQuery,
+        opts: {
           method: options?.method || "GET",
           ...(options?.body && {
             body: JSON.stringify(options.body),
           }),
           credentials: "include",
         },
-        `CloudQuote ${path}`,
-      );
+        context: `CloudQuote ${path}`,
+        schema: z.any(),
+      })
     } catch (err: any) {
       this.app.serviceError(this, `CloudQuote RPC failed: ${path}`, err);
 

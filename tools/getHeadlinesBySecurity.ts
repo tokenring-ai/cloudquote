@@ -18,12 +18,12 @@ async function execute({ symbols, start, count, minDate, maxDate }: z.output<typ
     count,
     minDate,
     maxDate,
-  });
+  }) as any;
   if (!result || !Array.isArray(result.rows)) {
     throw new Error("Invalid response from getHeadlinesBySecurity API");
   }
 
-  const rows = result.rows;
+  const rows = result.rows as any[];
   for (const row of rows) {
     if (row.bodyId && row.slug) {
       row.link = `https://www.financialcontent.com/article/${row.slug}`;
