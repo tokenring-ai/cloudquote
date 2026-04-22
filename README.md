@@ -2,7 +2,9 @@
 
 ## Overview
 
-The `@tokenring-ai/cloudquote` package provides financial data tools for TokenRing agents, enabling access to real-time pricing information, historical data, price ticks, market leaders, and news headlines for securities through the CloudQuote API and NewsRPM services.
+The `@tokenring-ai/cloudquote` package provides financial data tools for TokenRing agents, enabling access to real-time
+pricing information, historical data, price ticks, market leaders, and news headlines for securities through the
+CloudQuote API and NewsRPM services.
 
 ## Features
 
@@ -51,12 +53,12 @@ This package does not define chat commands. All functionality is exposed through
 
 The package provides the following tools that can be used in TokenRing agents:
 
-| Tool Name | Description |
-|-----------|-------------|
-| `cloudquote_getQuote` | Retrieve pricing and metadata for given security symbols |
-| `cloudquote_getLeaders` | Get a list of stocks that are notable today (most active, gainers, losers) |
-| `cloudquote_getPriceTicks` | Fetch intraday price ticks (time, price, volume) for a symbol |
-| `cloudquote_getPriceHistory` | Fetch historical daily price data for a symbol |
+| Tool Name                           | Description                                                                          |
+|-------------------------------------|--------------------------------------------------------------------------------------|
+| `cloudquote_getQuote`               | Retrieve pricing and metadata for given security symbols                             |
+| `cloudquote_getLeaders`             | Get a list of stocks that are notable today (most active, gainers, losers)           |
+| `cloudquote_getPriceTicks`          | Fetch intraday price ticks (time, price, volume) for a symbol                        |
+| `cloudquote_getPriceHistory`        | Fetch historical daily price data for a symbol                                       |
 | `cloudquote_getHeadlinesBySecurity` | Retrieve news headlines for one or more ticker symbols within a specified time range |
 
 ### cloudquote_getQuote
@@ -65,9 +67,9 @@ Retrieve pricing and metadata for given security symbols.
 
 **Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `symbols` | string[] | Yes | Array of ticker symbols to fetch (e.g., `['AAPL', 'GOOGL', 'MSFT']`) |
+| Parameter | Type     | Required | Description                                                          |
+|-----------|----------|----------|----------------------------------------------------------------------|
+| `symbols` | string[] | Yes      | Array of ticker symbols to fetch (e.g., `['AAPL', 'GOOGL', 'MSFT']`) |
 
 **Example Usage:**
 
@@ -77,7 +79,9 @@ const result = await agent.invokeTool('cloudquote_getQuote', {
 });
 ```
 
-**Response Schema:** The response follows the `CloudQuoteQuoteSchema` which includes core identification fields (Symbol, Name), price fields (Price, PrevClose, Ask, Bid, High, Low, Open), calculated fields (Change, ChangePercent), volume fields, exchange information, and many more fields as defined in `schema.ts`.
+**Response Schema:** The response follows the `CloudQuoteQuoteSchema` which includes core identification fields (Symbol,
+Name), price fields (Price, PrevClose, Ask, Bid, High, Low, Open), calculated fields (Change, ChangePercent), volume
+fields, exchange information, and many more fields as defined in `schema.ts`.
 
 ### cloudquote_getLeaders
 
@@ -85,13 +89,13 @@ Get a list of stocks that are notable today (most active by volume, highest perc
 
 **Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `list` | "MOSTACTIVE" \| "PERCENTGAINERS" \| "PERCENTLOSERS" | Yes | Type of list |
-| `type` | "STOCK" \| "ETF" | No | Security type |
-| `limit` | number (1-50) | No | Max number of results |
-| `minPrice` | number | No | Minimum price filter |
-| `maxPrice` | number | No | Maximum price filter |
+| Parameter  | Type                                                | Required | Description           |
+|------------|-----------------------------------------------------|----------|-----------------------|
+| `list`     | "MOSTACTIVE" \| "PERCENTGAINERS" \| "PERCENTLOSERS" | Yes      | Type of list          |
+| `type`     | "STOCK" \| "ETF"                                    | No       | Security type         |
+| `limit`    | number (1-50)                                       | No       | Max number of results |
+| `minPrice` | number                                              | No       | Minimum price filter  |
+| `maxPrice` | number                                              | No       | Maximum price filter  |
 
 **Example Usage:**
 
@@ -115,9 +119,9 @@ Fetch intraday price ticks (time, price, volume) for a symbol.
 
 **Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `symbol` | string | Yes | Ticker symbol |
+| Parameter | Type   | Required | Description   |
+|-----------|--------|----------|---------------|
+| `symbol`  | string | Yes      | Ticker symbol |
 
 **Important:** When using `getPriceTicks`, request a data range 5 minutes ahead and behind the time you are looking for.
 
@@ -141,13 +145,14 @@ Fetch historical daily price data for a symbol.
 
 **Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `symbol` | string | Yes | Ticker symbol |
-| `from` | string | No | Start date (YYYY-MM-DD). Must be at least 1 day before the date requested |
-| `to` | string | No | End date (YYYY-MM-DD). Must be at least 1 day after the date requested |
+| Parameter | Type   | Required | Description                                                               |
+|-----------|--------|----------|---------------------------------------------------------------------------|
+| `symbol`  | string | Yes      | Ticker symbol                                                             |
+| `from`    | string | No       | Start date (YYYY-MM-DD). Must be at least 1 day before the date requested |
+| `to`      | string | No       | End date (YYYY-MM-DD). Must be at least 1 day after the date requested    |
 
-**Important:** When using `getPriceHistory`, request a date range that is 1 day ahead and 1 day behind the date you want to analyze.
+**Important:** When using `getPriceHistory`, request a date range that is 1 day ahead and 1 day behind the date you want
+to analyze.
 
 **Example Usage:**
 
@@ -171,19 +176,21 @@ const result = await agent.invokeTool('cloudquote_getPriceHistory', {
 
 ### cloudquote_getHeadlinesBySecurity
 
-Retrieve news headlines for one or more ticker symbols within a specified time range. **Note: This tool uses the NewsRPM API, not the CloudQuote API.**
+Retrieve news headlines for one or more ticker symbols within a specified time range. **Note: This tool uses the NewsRPM
+API, not the CloudQuote API.**
 
 **Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `symbols` | string | Yes | Comma-separated ticker symbols (e.g., `'GOOG,AAPL'`) |
-| `start` | number | No | Number of records to skip before returning results |
-| `count` | number (1-100) | No | Number of records to retrieve (max 100) |
-| `minDate` | string | No | Article publication date-time (ISO 8601) for start of date-time range |
-| `maxDate` | string | No | Article publication date-time (ISO 8601) for start of date-time range |
+| Parameter | Type           | Required | Description                                                           |
+|-----------|----------------|----------|-----------------------------------------------------------------------|
+| `symbols` | string         | Yes      | Comma-separated ticker symbols (e.g., `'GOOG,AAPL'`)                  |
+| `start`   | number         | No       | Number of records to skip before returning results                    |
+| `count`   | number (1-100) | No       | Number of records to retrieve (max 100)                               |
+| `minDate` | string         | No       | Article publication date-time (ISO 8601) for start of date-time range |
+| `maxDate` | string         | No       | Article publication date-time (ISO 8601) for start of date-time range |
 
-**Important:** This tool uses the `getHeadlinesBySecurity` service method, which makes requests to `http://api.newsrpm.com` (NewsRPM API), not the CloudQuote API. The same API key is used for authentication.
+**Important:** This tool uses the `getHeadlinesBySecurity` service method, which makes requests to
+`http://api.newsrpm.com` (NewsRPM API), not the CloudQuote API. The same API key is used for authentication.
 
 **Example Usage:**
 
@@ -197,7 +204,8 @@ const result = await agent.invokeTool('cloudquote_getHeadlinesBySecurity', {
 });
 ```
 
-**Automatic Link Generation:** The tool automatically populates the `link` field for headlines that have both `bodyId` and `slug` fields using the pattern: `https://www.financialcontent.com/article/{slug}`
+**Automatic Link Generation:** The tool automatically populates the `link` field for headlines that have both `bodyId`
+and `slug` fields using the pattern: `https://www.financialcontent.com/article/{slug}`
 
 ## Configuration
 
@@ -205,8 +213,8 @@ The package supports configuration via environment variables or explicit plugin 
 
 ### Environment Variables
 
-| Variable | Type | Required | Description |
-|----------|------|----------|-------------|
+| Variable             | Type   | Required                        | Description                           |
+|----------------------|--------|---------------------------------|---------------------------------------|
 | `CLOUDQUOTE_API_KEY` | string | Yes (if not provided in config) | CloudQuote API key for authentication |
 
 ### Configuration Schema
@@ -245,7 +253,9 @@ app.installPlugin(tokenringPlugin, {
 });
 ```
 
-**Note:** The plugin automatically registers both tools (for chat/agent interaction) and RPC endpoints (for programmatic access). The service is only initialized if an API key is provided (either via environment variable or explicit configuration).
+**Note:** The plugin automatically registers both tools (for chat/agent interaction) and RPC endpoints (for programmatic
+access). The service is only initialized if an API key is provided (either via environment variable or explicit
+configuration).
 
 ## License
 
@@ -255,16 +265,15 @@ MIT License - see LICENSE file for details.
 
 ### CloudQuoteService
 
-The `CloudQuoteService` is the core service that manages authentication and API communication with CloudQuote. It extends `HttpService` and implements the `TokenRingService` interface.
+The `CloudQuoteService` is the core service that manages authentication and API communication with CloudQuote. It
+implements the `TokenRingService` interface.
 
 #### Service Properties
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `name` | string | Service identifier (`"CloudQuote"`) |
-| `description` | string | Human-readable service description |
-| `baseUrl` | string | CloudQuote API endpoint URL (`https://api.cloudquote.io`) |
-| `timeout` | number | Request timeout in milliseconds (`10,000`) |
+| Property      | Type   | Description                                               |
+|---------------|--------|-----------------------------------------------------------|
+| `name`        | string | Service identifier (`"CloudQuote"`)                       |
+| `description` | string | Human-readable service description                        |
 
 #### Constructor
 
@@ -311,7 +320,9 @@ const quote = await cloudQuoteService.getJSON('fcon/getQuote', {
 
 ##### `getHeadlinesBySecurity(params: any): Promise<any>`
 
-Retrieve news headlines from the NewsRPM API (not CloudQuote). This method handles the API communication to NewsRPM and returns headline data. **Note: This method uses a different base URL (`http://api.newsrpm.com`) than other CloudQuote methods.**
+Retrieve news headlines from the NewsRPM API (not CloudQuote). This method handles the API communication to NewsRPM and
+returns headline data. **Note: This method uses a different base URL (`http://api.newsrpm.com`) than other CloudQuote
+methods.**
 
 **Parameters:**
 
@@ -336,15 +347,17 @@ const headlines = await cloudQuoteService.getHeadlinesBySecurity({
 });
 ```
 
-**Important:** This method makes requests to `http://api.newsrpm.com`, not the CloudQuote API. The same API key is used for authentication.
+**Important:** This method makes requests to `http://api.newsrpm.com`, not the CloudQuote API. The same API key is used
+for authentication.
 
-##### `getPriceChart(params: any): { svgDataUri: string }`
+##### `getPriceChart(params: { symbol: string; interval: string }): { svgDataUri: string }`
 
-Generate a price chart URL for a security. This method returns a URL that can be directly used as an image source. **Note: This is a service method only and is not exposed as a tool. The method returns a static URL string, not an SVG data URI.**
+Generate a price chart URL for a security. This method returns a URL string that can be directly used as an image
+source.
 
 **Parameters:**
 
-- `params` (any): Chart parameters
+- `params` (object): Chart parameters
   - `symbol` (string): Ticker symbol
   - `interval` (string): Chart interval (e.g., `'1D'`, `'5D'`, `'1M'`)
 
@@ -361,7 +374,8 @@ console.log(chart.svgDataUri);
 // Output: "https://chart.financialcontent.com/Chart?shwidth=3&fillshx=0&..."
 ```
 
-**Note:** The returned URL is a static URL from financialcontent.com Chart service, not an actual SVG data URI. The `svgDataUri` property name is a misnomer - it returns a regular URL string.
+**Note:** The returned URL is a static URL from financialcontent.com Chart service. The `svgDataUri` property name
+reflects the return type, but it contains a regular URL string.
 
 #### Error Handling
 
@@ -389,8 +403,8 @@ export class CloudQuoteError extends Error {
 import CloudQuoteService, { CloudQuoteError } from "@tokenring-ai/cloudquote";
 
 try {
-  const service = new CloudQuoteService(app, { 
-    apiKey: process.env.CLOUDQUOTE_API_KEY 
+  const service = new CloudQuoteService(app, {
+    apiKey: process.env.CLOUDQUOTE_API_KEY
   });
   await service.getJSON('fcon/getQuote', { symbol: 'AAPL' });
 } catch (err) {
@@ -405,16 +419,17 @@ try {
 
 This package defines the following RPC endpoints under `/rpc/cloudquote`:
 
-| Endpoint | Method | Input Parameters | Response | API Endpoint |
-|----------|--------|------------------|----------|--------------|
-| `getQuote` | query | `{ symbols: string[] }` | `{ rows: CloudQuoteQuoteSchema[] }` | `fcon/getQuote` |
-| `getPriceHistory` | query | `{ symbol: string, from?: string, to?: string }` | `{ rows: CloudQuoteQuoteHistoricalItemSchema[] }` | `fcon/getPriceHistory` |
-| `getPriceTicks` | query | `{ symbol: string }` | `{ rows: CloudQuoteQuoteIntradayItemSchema[] }` | `fcon/getPriceTicks` |
-| `getLeaders` | query | `{ list: "MOSTACTIVE"\|"PERCENTGAINERS"\|"PERCENTLOSERS", type?: "STOCK"\|"ETF", limit?: number, minPrice?: number, maxPrice?: number }` | `{ rows: CloudQuoteQuoteSchema[] }` | `fcon/getLeaders` |
-| `getHeadlinesBySecurity` | query | `{ symbols: string, start?: number, count?: number, minDate?: string, maxDate?: string }` | `{ data: any }` | `newsrpm/getHeadlinesBySecurity` |
-| `getPriceChart` | query | `{ symbol: string, interval: string }` | `{ svgDataUri: string }` | N/A (URL generation) |
+| Endpoint                 | Method | Input Parameters                                                                                                                         | Response                                          | API Endpoint                     |
+|--------------------------|--------|------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------|----------------------------------|
+| `getQuote`               | query  | `{ symbols: string[] }`                                                                                                                  | `{ rows: CloudQuoteQuoteSchema[] }`               | `fcon/getQuote`                  |
+| `getPriceHistory`        | query  | `{ symbol: string, from?: string, to?: string }`                                                                                         | `{ rows: CloudQuoteQuoteHistoricalItemSchema[] }` | `fcon/getPriceHistory`           |
+| `getPriceTicks`          | query  | `{ symbol: string }`                                                                                                                     | `{ rows: CloudQuoteQuoteIntradayItemSchema[] }`   | `fcon/getPriceTicks`             |
+| `getLeaders`             | query  | `{ list: "MOSTACTIVE"\|"PERCENTGAINERS"\|"PERCENTLOSERS", type?: "STOCK"\|"ETF", limit?: number, minPrice?: number, maxPrice?: number }` | `{ rows: CloudQuoteQuoteSchema[] }`               | `fcon/getLeaders`                |
+| `getHeadlinesBySecurity` | query  | `{ symbols: string, start?: number, count?: number, minDate?: string, maxDate?: string }`                                                | `{ data: any }`                                   | `newsrpm/getHeadlinesBySecurity` |
+| `getPriceChart`          | query  | `{ symbol: string, interval: string }`                                                                                                   | `{ svgDataUri: string }`                          | N/A (URL generation)             |
 
-**Note:** The `getHeadlinesBySecurity` endpoint uses the NewsRPM API (`http://api.newsrpm.com`) instead of the CloudQuote API. The `getPriceChart` endpoint generates a chart URL from financialcontent.com.
+**Note:** The `getHeadlinesBySecurity` endpoint uses the NewsRPM API (`http://api.newsrpm.com`) instead of the
+CloudQuote API. The `getPriceChart` endpoint generates a chart URL from financialcontent.com.
 
 ### RPC Usage Example
 
@@ -463,7 +478,8 @@ The package exports Zod schemas for type-safe data validation.
 
 ### CloudQuoteQuoteSchema
 
-Comprehensive schema for quote data. All fields are optional as they depend on the API response. The schema includes the following field categories:
+Comprehensive schema for quote data. All fields are optional as they depend on the API response. The schema includes the
+following field categories:
 
 **Core identification fields:**
 
@@ -519,7 +535,8 @@ Comprehensive schema for quote data. All fields are optional as they depend on t
 
 **High values and dates:**
 
-- `High1M`, `High1MDate`, `High1W`, `High1WDate`, `High3M`, `High3MDate`, `High52`, `High52Date`, `High6M`, `High6MDate`, `HighYTD`
+- `High1M`, `High1MDate`, `High1W`, `High1WDate`, `High3M`, `High3MDate`, `High52`, `High52Date`, `High6M`,
+  `High6MDate`, `HighYTD`
 
 **Chart fields:**
 
@@ -553,7 +570,8 @@ export const CloudQuoteQuoteHistoricalItemSchema = z.tuple([
 ]);
 ```
 
-**Note:** The tools automatically convert the timestamp (index 0) to a date string in `YYYY-MM-DD` format using the `America/New_York` timezone.
+**Note:** The tools automatically convert the timestamp (index 0) to a date string in `YYYY-MM-DD` format using the
+`America/New_York` timezone.
 
 ### CloudQuoteQuoteIntradayItemSchema
 
@@ -567,7 +585,8 @@ export const CloudQuoteQuoteIntradayItemSchema = z.tuple([
 ]);
 ```
 
-**Note:** The tools automatically convert the timestamp (index 0) to a date string in `YYYY-MM-DD` format using the `America/New_York` timezone.
+**Note:** The tools automatically convert the timestamp (index 0) to a date string in `YYYY-MM-DD` format using the
+`America/New_York` timezone.
 
 ## Best Practices
 
@@ -601,7 +620,8 @@ const history = await agent.invokeTool('cloudquote_getPriceHistory', {
 
 ### Timezone-Aware Formatting
 
-Price history and tick data are returned with timezone-aware dates. The service uses `America/New_York` timezone for date formatting:
+Price history and tick data are returned with timezone-aware dates. The service uses `America/New_York` timezone for
+date formatting:
 
 ```typescript
 // Timestamps are automatically converted to America/New_York timezone
@@ -611,10 +631,11 @@ const ticks = await agent.invokeTool('cloudquote_getPriceTicks', {
 // Result dates are in YYYY-MM-DD format (America/New_York timezone)
 ```
 
-**Implementation Detail:** The tools use `date-fns-tz` library to convert epoch nanosecond timestamps to timezone-aware date strings:
+**Implementation Detail:** The tools use `date-fns-tz` library to convert epoch nanosecond timestamps to timezone-aware
+date strings:
 
 ```typescript
-import {format, toZonedTime} from "date-fns-tz";
+import { format, toZonedTime } from "date-fns-tz";
 
 const zoned = toZonedTime(timestamp, 'America/New_York');
 const dateStr = format(zoned, 'yyyy-MM-dd');
@@ -622,7 +643,8 @@ const dateStr = format(zoned, 'yyyy-MM-dd');
 
 ### Timeframe Handling for Price Ticks
 
-For `getPriceTicks`, the API expects you to request a data range 5 minutes ahead and behind the time you are looking for. The tool fetches all available intraday ticks for the symbol:
+For `getPriceTicks`, the API expects you to request a data range 5 minutes ahead and behind the time you are looking
+for. The tool fetches all available intraday ticks for the symbol:
 
 ```typescript
 // Fetches all intraday ticks for the symbol
@@ -632,7 +654,8 @@ const ticks = await agent.invokeTool('cloudquote_getPriceTicks', {
 // Returns array of [date, price, cumulativeVolume] tuples
 ```
 
-**Note:** The tool does not filter by time range - it returns all available intraday data. You may need to filter the results client-side based on your specific time requirements.
+**Note:** The tool does not filter by time range - it returns all available intraday data. You may need to filter the
+results client-side based on your specific time requirements.
 
 ### News Headline Links
 
@@ -659,9 +682,10 @@ row.link = `https://www.financialcontent.com/article/${row.slug}`;
 
 ### Rate Limiting
 
-Be mindful of API rate limits when making multiple requests. The service includes a 10-second timeout for requests using `AbortController`.
+Be mindful of API rate limits when making multiple requests. The service includes a 10-second timeout for requests.
 
-**Important:** The `getHeadlinesBySecurity` method uses a different API endpoint (`http://api.newsrpm.com`) than other methods (`https://api.cloudquote.io`). Both use the same API key for authentication.
+**Important:** The `getHeadlinesBySecurity` method uses a different API endpoint (`http://api.newsrpm.com`) than other
+methods (`https://api.cloudquote.io`). Both use the same API key for authentication.
 
 ### Performance Considerations
 
@@ -670,7 +694,7 @@ Be mindful of API rate limits when making multiple requests. The service include
 - Consider caching frequently accessed data to reduce API calls
 - For `getHeadlinesBySecurity`, use `count` parameter to limit results (max 100)
 
-### Error Handling
+### Error Handling in Tool Usage
 
 Always handle `CloudQuoteError` exceptions appropriately:
 
@@ -741,12 +765,11 @@ The package uses vitest for testing with the configuration in `vitest.config.ts`
 - **@tokenring-ai/agent**: Agent system for orchestrating tool usage and execution
 - **@tokenring-ai/chat**: Chat interface, tool definitions, and RPC service integration
 - **@tokenring-ai/rpc**: RPC service for endpoint registration and programmatic access
-- **@tokenring-ai/utility**: HTTP utilities including `HttpService` base class and `doFetchWithRetry`
+- **@tokenring-ai/utility**: HTTP utilities including `HTTPRetriever` for making API requests
 
 ### Utility Packages
 
-- **@tokenring-ai/utility/http/HttpService**: Base HTTP service class for making API requests
-- **@tokenring-ai/utility/http/doFetchWithRetry**: HTTP request utility with retry logic
+- **@tokenring-ai/utility/http/HTTPRetriever**: HTTP utility for making validated JSON requests
 - **date-fns-tz**: Timezone-aware date formatting library
 - **zod**: Schema validation and type inference
 
