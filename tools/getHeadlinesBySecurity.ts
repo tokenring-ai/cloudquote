@@ -12,13 +12,13 @@ async function execute({ symbols, start, count, minDate, maxDate }: z.output<typ
     throw new Error("symbols is required");
   }
   // Note: This calls the service method which uses NewsRPM API (http://api.newsrpm.com)
-  const result = await cloudQuoteService.getHeadlinesBySecurity({
+  const result = (await cloudQuoteService.getHeadlinesBySecurity({
     symbols,
     start,
     count,
     minDate,
     maxDate,
-  }) as any;
+  })) as any;
   if (!result || !Array.isArray(result.rows)) {
     throw new Error("Invalid response from getHeadlinesBySecurity API");
   }

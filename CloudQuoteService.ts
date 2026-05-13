@@ -42,9 +42,9 @@ export default class CloudQuoteService implements TokenRingService {
         url: "http://api.newsrpm.com",
         opts: {
           method: "POST",
-          body: JSON.stringify(params)
+          body: JSON.stringify(params),
         },
-        context: "CloudQuote headlines by security"
+        context: "CloudQuote headlines by security",
       });
     } catch (err: unknown) {
       if (err instanceof CloudQuoteError) throw err;
@@ -88,7 +88,7 @@ export default class CloudQuoteService implements TokenRingService {
         },
         context: `CloudQuote ${path}`,
         schema: z.any(),
-      })
+      });
     } catch (err: any) {
       this.app.serviceError(this, `CloudQuote RPC failed: ${path}`, err);
 

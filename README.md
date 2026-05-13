@@ -270,10 +270,10 @@ implements the `TokenRingService` interface.
 
 #### Service Properties
 
-| Property      | Type   | Description                                               |
-|---------------|--------|-----------------------------------------------------------|
-| `name`        | string | Service identifier (`"CloudQuote"`)                       |
-| `description` | string | Human-readable service description                        |
+| Property      | Type   | Description                         |
+|---------------|--------|-------------------------------------|
+| `name`        | string | Service identifier (`"CloudQuote"`) |
+| `description` | string | Human-readable service description  |
 
 #### Constructor
 
@@ -285,7 +285,7 @@ constructor(app: TokenRingApp, options: CloudQuoteServiceOptions)
 
 - `app` (TokenRingApp): The TokenRing application instance for service management and logging
 - `options` (CloudQuoteServiceOptions): Configuration options
-  - `apiKey` (string): CloudQuote API key (required)
+- `apiKey` (string): CloudQuote API key (required)
 
 **Example:**
 
@@ -313,8 +313,8 @@ Generic method for making CloudQuote API requests. Handles query parameter seria
 **Example:**
 
 ```typescript
-const quote = await cloudQuoteService.getJSON('fcon/getQuote', { 
-  symbol: 'AAPL,GOOGL' 
+const quote = await cloudQuoteService.getJSON('fcon/getQuote', {
+  symbol: 'AAPL,GOOGL'
 });
 ```
 
@@ -327,11 +327,11 @@ methods.**
 **Parameters:**
 
 - `params` (any): Headline query parameters
-  - `symbols` (string): Comma-separated ticker symbols
-  - `start` (number): Number of records to skip
-  - `count` (number): Number of records to retrieve (max 100)
-  - `minDate` (string): Start date-time in ISO 8601 format
-  - `maxDate` (string): End date-time in ISO 8601 format
+- `symbols` (string): Comma-separated ticker symbols
+- `start` (number): Number of records to skip
+- `count` (number): Number of records to retrieve (max 100)
+- `minDate` (string): Start date-time in ISO 8601 format
+- `maxDate` (string): End date-time in ISO 8601 format
 
 **Returns:** `Promise<any>` - News headlines data
 
@@ -358,17 +358,17 @@ source.
 **Parameters:**
 
 - `params` (object): Chart parameters
-  - `symbol` (string): Ticker symbol
-  - `interval` (string): Chart interval (e.g., `'1D'`, `'5D'`, `'1M'`)
+- `symbol` (string): Ticker symbol
+- `interval` (string): Chart interval (e.g., `'1D'`, `'5D'`, `'1M'`)
 
 **Returns:** `{ svgDataUri: string }` - Chart URL string
 
 **Example:**
 
 ```typescript
-const chart = cloudQuoteService.getPriceChart({ 
-  symbol: 'AAPL', 
-  interval: '1D' 
+const chart = cloudQuoteService.getPriceChart({
+  symbol: 'AAPL',
+  interval: '1D'
 });
 console.log(chart.svgDataUri);
 // Output: "https://chart.financialcontent.com/Chart?shwidth=3&fillshx=0&..."
@@ -443,31 +443,31 @@ const quote = await rpcClient.getQuote({ symbols: ['AAPL', 'GOOGL'] });
 console.log(quote.rows);
 
 // Get price history
-const history = await rpcClient.getPriceHistory({ 
-  symbol: 'AAPL', 
-  from: '2024-01-14', 
-  to: '2024-01-16' 
+const history = await rpcClient.getPriceHistory({
+  symbol: 'AAPL',
+  from: '2024-01-14',
+  to: '2024-01-16'
 });
 console.log(history.rows);
 
 // Get market leaders
-const leaders = await rpcClient.getLeaders({ 
-  list: 'PERCENTGAINERS', 
-  limit: 10 
+const leaders = await rpcClient.getLeaders({
+  list: 'PERCENTGAINERS',
+  limit: 10
 });
 console.log(leaders.rows);
 
 // Get news headlines (uses NewsRPM API)
-const headlines = await rpcClient.getHeadlinesBySecurity({ 
+const headlines = await rpcClient.getHeadlinesBySecurity({
   symbols: 'AAPL',
   count: 10
 });
 console.log(headlines.data);
 
 // Get price chart URL
-const chart = await rpcClient.getPriceChart({ 
-  symbol: 'AAPL', 
-  interval: '1D' 
+const chart = await rpcClient.getPriceChart({
+  symbol: 'AAPL',
+  interval: '1D'
 });
 console.log(chart.svgDataUri);
 ```
