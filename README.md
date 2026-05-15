@@ -2,22 +2,18 @@
 
 ## Overview
 
-The `@tokenring-ai/cloudquote` package provides financial data tools for TokenRing agents, enabling access to real-time
-pricing information, historical data, price ticks, market leaders, and news headlines for securities through the
-CloudQuote API and NewsRPM services.
+The `@tokenring-ai/cloudquote` package provides real-time market data, quotes, and financial headlines for specialized analysis. It enables TokenRing agents to access pricing information, historical data, price ticks, market leaders, and news headlines for securities through the CloudQuote API and NewsRPM services.
 
-## Features
+**Key Features:**
 
-- **Real-time Quote Data**: Retrieve pricing and metadata for single or multiple securities
-- **Historical Price Data**: Fetch daily historical price data with timezone-aware formatting
-- **Intraday Price Ticks**: Get intraday price data with time, price, and volume information
-- **Market Leaders**: Access lists of most active stocks, percentage gainers, and percentage losers
-- **News Headlines**: Retrieve news headlines for specified ticker symbols within date ranges (via NewsRPM)
-- **Price Chart URLs**: Generate price chart URLs for securities
-- **RPC Endpoints**: Full RPC API for programmatic access to all CloudQuote functionality
-- **Robust Error Handling**: Custom error types for API-related issues with detailed diagnostics
-- **Timezone-Aware Formatting**: All dates are formatted in America/New_York timezone
-- **Automatic Link Generation**: News headline links are automatically populated when available
+- Real-time quote data for single or multiple securities
+- Historical price data with timezone-aware formatting
+- Intraday price ticks with time, price, and volume information
+- Market leaders (most active, gainers, losers, and popular stocks)
+- News headlines integration via NewsRPM API
+- Full RPC API for programmatic access
+- Robust error handling with custom error types
+- Timezone-aware date formatting (America/New_York)
 
 ## Installation
 
@@ -29,18 +25,18 @@ bun add @tokenring-ai/cloudquote
 
 ### Production Dependencies
 
-- `@tokenring-ai/app` (0.2.0)
-- `@tokenring-ai/agent` (0.2.0)
-- `@tokenring-ai/chat` (0.2.0)
-- `@tokenring-ai/rpc` (0.2.0)
-- `@tokenring-ai/utility` (0.2.0)
+- `@tokenring-ai/app` (workspace:*)
+- `@tokenring-ai/agent` (workspace:*)
+- `@tokenring-ai/chat` (workspace:*)
+- `@tokenring-ai/rpc` (workspace:*)
+- `@tokenring-ai/utility` (workspace:*)
 - `date-fns-tz` (^3.2.0)
 - `zod` (^4.3.6)
 
 ### Development Dependencies
 
-- `vitest` (^4.1.1)
 - `typescript` (^6.0.2)
+- `vitest` (^4.1.1)
 
 ## Chat Commands
 
@@ -51,15 +47,15 @@ This package does not define chat commands. All functionality is exposed through
 
 ## Tools
 
-The package provides the following tools that can be used in TokenRing agents:
+The package provides the following tools for TokenRing agents:
 
-| Tool Name                           | Description                                                                          |
-|-------------------------------------|--------------------------------------------------------------------------------------|
-| `cloudquote_getQuote`               | Retrieve pricing and metadata for given security symbols                             |
-| `cloudquote_getLeaders`             | Get a list of stocks that are notable today (most active, gainers, losers)           |
-| `cloudquote_getPriceTicks`          | Fetch intraday price ticks (time, price, volume) for a symbol                        |
-| `cloudquote_getPriceHistory`        | Fetch historical daily price data for a symbol                                       |
-| `cloudquote_getHeadlinesBySecurity` | Retrieve news headlines for one or more ticker symbols within a specified time range |
+| Tool Name                           | Description                                                                                   |
+|-------------------------------------|-----------------------------------------------------------------------------------------------|
+| `cloudquote_getQuote`               | Retrieve pricing and metadata for given security symbols                                      |
+| `cloudquote_getLeaders`             | Get notable stocks (most active, gainers, losers, or popular stocks)                          |
+| `cloudquote_getPriceTicks`          | Fetch intraday price ticks (time, price, volume) for a symbol                                 |
+| `cloudquote_getPriceHistory`        | Fetch historical daily price data for a symbol                                                |
+| `cloudquote_getHeadlinesBySecurity` | Retrieve news headlines for ticker symbols within a specified time range                      |
 
 ### cloudquote_getQuote
 
@@ -79,13 +75,11 @@ const result = await agent.invokeTool('cloudquote_getQuote', {
 });
 ```
 
-**Response Schema:** The response follows the `CloudQuoteQuoteSchema` which includes core identification fields (Symbol,
-Name), price fields (Price, PrevClose, Ask, Bid, High, Low, Open), calculated fields (Change, ChangePercent), volume
-fields, exchange information, and many more fields as defined in `schema.ts`.
+**Response:** Returns an array of quote objects following the `CloudQuoteQuoteSchema` with fields including Symbol, Name, Price, PrevClose, Ask, Bid, High, Low, Open, Change, ChangePercent, Volume, and many more.
 
 ### cloudquote_getLeaders
 
-Get a list of stocks that are notable today (most active by volume, highest percent gainers, biggest percent losers).
+Get a list of notable stocks (most active by volume, highest percent gainers, biggest percent losers, or most popular stocks).
 
 **Parameters:**
 
@@ -133,7 +127,7 @@ const result = await agent.invokeTool('cloudquote_getPriceTicks', {
 });
 ```
 
-**Response Format:** The response is an array of tuples where each tuple contains:
+**Response Format:** Array of tuples where each tuple contains:
 
 - Index 0: Date string in YYYY-MM-DD format (America/New_York timezone)
 - Index 1: Price (number)
@@ -151,8 +145,7 @@ Fetch historical daily price data for a symbol.
 | `from`    | string | No       | Start date (YYYY-MM-DD). Must be at least 1 day before the date requested |
 | `to`      | string | No       | End date (YYYY-MM-DD). Must be at least 1 day after the date requested    |
 
-**Important:** When using `getPriceHistory`, request a date range that is 1 day ahead and 1 day behind the date you want
-to analyze.
+**Important:** When using `getPriceHistory`, request a date range that is 1 day ahead and 1 day behind the date you want to analyze.
 
 **Example Usage:**
 
@@ -164,7 +157,7 @@ const result = await agent.invokeTool('cloudquote_getPriceHistory', {
 });
 ```
 
-**Response Format:** The response is an array of tuples where each tuple contains:
+**Response Format:** Array of tuples where each tuple contains:
 
 - Index 0: Date string in YYYY-MM-DD format (America/New_York timezone)
 - Index 1: Open price
@@ -176,8 +169,9 @@ const result = await agent.invokeTool('cloudquote_getPriceHistory', {
 
 ### cloudquote_getHeadlinesBySecurity
 
-Retrieve news headlines for one or more ticker symbols within a specified time range. **Note: This tool uses the NewsRPM
-API, not the CloudQuote API.**
+Retrieve news headlines for one or more ticker symbols within a specified time range.
+
+**Note:** This tool uses the NewsRPM API (`http://api.newsrpm.com`), not the CloudQuote API. The same API key is used for authentication.
 
 **Parameters:**
 
@@ -187,10 +181,7 @@ API, not the CloudQuote API.**
 | `start`   | number         | No       | Number of records to skip before returning results                    |
 | `count`   | number (1-100) | No       | Number of records to retrieve (max 100)                               |
 | `minDate` | string         | No       | Article publication date-time (ISO 8601) for start of date-time range |
-| `maxDate` | string         | No       | Article publication date-time (ISO 8601) for start of date-time range |
-
-**Important:** This tool uses the `getHeadlinesBySecurity` service method, which makes requests to
-`http://api.newsrpm.com` (NewsRPM API), not the CloudQuote API. The same API key is used for authentication.
+| `maxDate` | string         | No       | Article publication date-time (ISO 8601) for end of date-time range   |
 
 **Example Usage:**
 
@@ -204,8 +195,7 @@ const result = await agent.invokeTool('cloudquote_getHeadlinesBySecurity', {
 });
 ```
 
-**Automatic Link Generation:** The tool automatically populates the `link` field for headlines that have both `bodyId`
-and `slug` fields using the pattern: `https://www.financialcontent.com/article/{slug}`
+**Automatic Link Generation:** The tool automatically populates the `link` field for headlines that have both `bodyId` and `slug` fields using the pattern: `https://www.financialcontent.com/article/{slug}`
 
 ## Configuration
 
@@ -253,167 +243,7 @@ app.installPlugin(tokenringPlugin, {
 });
 ```
 
-**Note:** The plugin automatically registers both tools (for chat/agent interaction) and RPC endpoints (for programmatic
-access). The service is only initialized if an API key is provided (either via environment variable or explicit
-configuration).
-
-## License
-
-MIT License - see LICENSE file for details.
-
-## Core Components
-
-### CloudQuoteService
-
-The `CloudQuoteService` is the core service that manages authentication and API communication with CloudQuote. It
-implements the `TokenRingService` interface.
-
-#### Service Properties
-
-| Property      | Type   | Description                         |
-|---------------|--------|-------------------------------------|
-| `name`        | string | Service identifier (`"CloudQuote"`) |
-| `description` | string | Human-readable service description  |
-
-#### Constructor
-
-```typescript
-constructor(app: TokenRingApp, options: CloudQuoteServiceOptions)
-```
-
-**Parameters:**
-
-- `app` (TokenRingApp): The TokenRing application instance for service management and logging
-- `options` (CloudQuoteServiceOptions): Configuration options
-- `apiKey` (string): CloudQuote API key (required)
-
-**Example:**
-
-```typescript
-import CloudQuoteService from "@tokenring-ai/cloudquote";
-
-const service = new CloudQuoteService(app, {
-  apiKey: process.env.CLOUDQUOTE_API_KEY
-});
-```
-
-#### Service Methods
-
-##### `getJSON(apiPath: string, params: Record<string, string | number | undefined | null>): Promise<T>`
-
-Generic method for making CloudQuote API requests. Handles query parameter serialization and error handling.
-
-**Parameters:**
-
-- `apiPath` (string): API endpoint path (e.g., `'fcon/getQuote'`)
-- `params` (Record<string, string | number | undefined | null>): Query parameters
-
-**Returns:** `Promise<T>` - Response data
-
-**Example:**
-
-```typescript
-const quote = await cloudQuoteService.getJSON('fcon/getQuote', {
-  symbol: 'AAPL,GOOGL'
-});
-```
-
-##### `getHeadlinesBySecurity(params: any): Promise<any>`
-
-Retrieve news headlines from the NewsRPM API (not CloudQuote). This method handles the API communication to NewsRPM and
-returns headline data. **Note: This method uses a different base URL (`http://api.newsrpm.com`) than other CloudQuote
-methods.**
-
-**Parameters:**
-
-- `params` (any): Headline query parameters
-- `symbols` (string): Comma-separated ticker symbols
-- `start` (number): Number of records to skip
-- `count` (number): Number of records to retrieve (max 100)
-- `minDate` (string): Start date-time in ISO 8601 format
-- `maxDate` (string): End date-time in ISO 8601 format
-
-**Returns:** `Promise<any>` - News headlines data
-
-**Example:**
-
-```typescript
-const headlines = await cloudQuoteService.getHeadlinesBySecurity({
-  symbols: 'AAPL,GOOGL',
-  start: 0,
-  count: 10,
-  minDate: '2024-01-01T00:00:00Z',
-  maxDate: '2024-01-15T23:59:59Z'
-});
-```
-
-**Important:** This method makes requests to `http://api.newsrpm.com`, not the CloudQuote API. The same API key is used
-for authentication.
-
-##### `getPriceChart(params: { symbol: string; interval: string }): { svgDataUri: string }`
-
-Generate a price chart URL for a security. This method returns a URL string that can be directly used as an image
-source.
-
-**Parameters:**
-
-- `params` (object): Chart parameters
-- `symbol` (string): Ticker symbol
-- `interval` (string): Chart interval (e.g., `'1D'`, `'5D'`, `'1M'`)
-
-**Returns:** `{ svgDataUri: string }` - Chart URL string
-
-**Example:**
-
-```typescript
-const chart = cloudQuoteService.getPriceChart({
-  symbol: 'AAPL',
-  interval: '1D'
-});
-console.log(chart.svgDataUri);
-// Output: "https://chart.financialcontent.com/Chart?shwidth=3&fillshx=0&..."
-```
-
-**Note:** The returned URL is a static URL from financialcontent.com Chart service. The `svgDataUri` property name
-reflects the return type, but it contains a regular URL string.
-
-#### Error Handling
-
-The service uses `CloudQuoteError` for all API-related errors:
-
-```typescript
-export class CloudQuoteError extends Error {
-  constructor(public readonly cause: unknown, message: string) {
-    super(message);
-    this.name = "CloudQuoteError";
-  }
-}
-```
-
-**Common Error Conditions:**
-
-- Missing API key (throws error on initialization)
-- Invalid API key (returns CloudQuoteError)
-- Network errors (returns CloudQuoteError with HTTP status)
-- API request failures (returns CloudQuoteError)
-
-**Example:**
-
-```typescript
-import CloudQuoteService, { CloudQuoteError } from "@tokenring-ai/cloudquote";
-
-try {
-  const service = new CloudQuoteService(app, {
-    apiKey: process.env.CLOUDQUOTE_API_KEY
-  });
-  await service.getJSON('fcon/getQuote', { symbol: 'AAPL' });
-} catch (err) {
-  if (err instanceof CloudQuoteError) {
-    console.error(`CloudQuote Error: ${err.message}`);
-    console.error(`Cause: ${err.cause}`);
-  }
-}
-```
+**Note:** The plugin automatically registers both tools (for chat/agent interaction) and RPC endpoints (for programmatic access). The service is only initialized if an API key is provided (either via environment variable or explicit configuration).
 
 ## RPC Endpoints
 
@@ -428,8 +258,7 @@ This package defines the following RPC endpoints under `/rpc/cloudquote`:
 | `getHeadlinesBySecurity` | query  | `{ symbols: string, start?: number, count?: number, minDate?: string, maxDate?: string }`                                                | `{ data: any }`                                   | `newsrpm/getHeadlinesBySecurity` |
 | `getPriceChart`          | query  | `{ symbol: string, interval: string }`                                                                                                   | `{ svgDataUri: string }`                          | N/A (URL generation)             |
 
-**Note:** The `getHeadlinesBySecurity` endpoint uses the NewsRPM API (`http://api.newsrpm.com`) instead of the
-CloudQuote API. The `getPriceChart` endpoint generates a chart URL from financialcontent.com.
+**Note:** The `getHeadlinesBySecurity` endpoint uses the NewsRPM API (`http://api.newsrpm.com`) instead of the CloudQuote API. The `getPriceChart` endpoint generates a chart URL from financialcontent.com.
 
 ### RPC Usage Example
 
@@ -478,8 +307,7 @@ The package exports Zod schemas for type-safe data validation.
 
 ### CloudQuoteQuoteSchema
 
-Comprehensive schema for quote data. All fields are optional as they depend on the API response. The schema includes the
-following field categories:
+Comprehensive schema for quote data. All fields are optional as they depend on the API response.
 
 **Core identification fields:**
 
@@ -535,8 +363,7 @@ following field categories:
 
 **High values and dates:**
 
-- `High1M`, `High1MDate`, `High1W`, `High1WDate`, `High3M`, `High3MDate`, `High52`, `High52Date`, `High6M`,
-  `High6MDate`, `HighYTD`
+- `High1M`, `High1MDate`, `High1W`, `High1WDate`, `High3M`, `High3MDate`, `High52`, `High52Date`, `High6M`, `High6MDate`, `HighYTD`
 
 **Chart fields:**
 
@@ -570,8 +397,7 @@ export const CloudQuoteQuoteHistoricalItemSchema = z.tuple([
 ]);
 ```
 
-**Note:** The tools automatically convert the timestamp (index 0) to a date string in `YYYY-MM-DD` format using the
-`America/New_York` timezone.
+**Note:** The tools automatically convert the timestamp (index 0) to a date string in `YYYY-MM-DD` format using the `America/New_York` timezone.
 
 ### CloudQuoteQuoteIntradayItemSchema
 
@@ -585,8 +411,141 @@ export const CloudQuoteQuoteIntradayItemSchema = z.tuple([
 ]);
 ```
 
-**Note:** The tools automatically convert the timestamp (index 0) to a date string in `YYYY-MM-DD` format using the
-`America/New_York` timezone.
+**Note:** The tools automatically convert the timestamp (index 0) to a date string in `YYYY-MM-DD` format using the `America/New_York` timezone.
+
+## Core Components
+
+### CloudQuoteService
+
+The `CloudQuoteService` is the core service that manages authentication and API communication with CloudQuote. It implements the `TokenRingService` interface.
+
+**Service Properties:**
+
+| Property      | Type   | Description                         |
+|---------------|--------|-------------------------------------|
+| `name`        | string | Service identifier (`"CloudQuote"`) |
+| `description` | string | Human-readable service description  |
+
+**Constructor:**
+
+```typescript
+constructor(app: TokenRingApp, options: CloudQuoteServiceOptions)
+```
+
+**Parameters:**
+
+- `app` (TokenRingApp): The TokenRing application instance for service management and logging
+- `options` (CloudQuoteServiceOptions): Configuration options with `apiKey` (required)
+
+**Example:**
+
+```typescript
+import CloudQuoteService from "@tokenring-ai/cloudquote";
+
+const service = new CloudQuoteService(app, {
+  apiKey: process.env.CLOUDQUOTE_API_KEY
+});
+```
+
+**Service Methods:**
+
+#### `getJSON(apiPath: string, params: Record<string, string | number | undefined | null>): Promise<T>`
+
+Generic method for making CloudQuote API requests. Handles query parameter serialization and error handling.
+
+**Parameters:**
+
+- `apiPath` (string): API endpoint path (e.g., `'fcon/getQuote'`)
+- `params` (Record): Query parameters
+
+**Example:**
+
+```typescript
+const quote = await cloudQuoteService.getJSON('fcon/getQuote', {
+  symbol: 'AAPL,GOOGL'
+});
+```
+
+#### `getHeadlinesBySecurity(params: any): Promise<any>`
+
+Retrieve news headlines from the NewsRPM API (not CloudQuote). **Note:** This method uses a different base URL (`http://api.newsrpm.com`) than other CloudQuote methods.
+
+**Parameters:**
+
+- `params` (any): Headline query parameters including `symbols`, `start`, `count`, `minDate`, `maxDate`
+
+**Example:**
+
+```typescript
+const headlines = await cloudQuoteService.getHeadlinesBySecurity({
+  symbols: 'AAPL,GOOGL',
+  start: 0,
+  count: 10,
+  minDate: '2024-01-01T00:00:00Z',
+  maxDate: '2024-01-15T23:59:59Z'
+});
+```
+
+#### `getPriceChart(params: { symbol: string; interval: string }): { svgDataUri: string }`
+
+Generate a price chart URL for a security. Returns a URL string that can be directly used as an image source.
+
+**Parameters:**
+
+- `params` (object): Chart parameters
+  - `symbol` (string): Ticker symbol
+  - `interval` (string): Chart interval (e.g., `'1D'`, `'5D'`, `'1M'`)
+
+**Returns:** `{ svgDataUri: string }` - Chart URL string
+
+**Example:**
+
+```typescript
+const chart = cloudQuoteService.getPriceChart({
+  symbol: 'AAPL',
+  interval: '1D'
+});
+console.log(chart.svgDataUri);
+// Output: "https://chart.financialcontent.com/Chart?..."
+```
+
+### CloudQuoteError
+
+Custom error class for CloudQuote API-related errors:
+
+```typescript
+export class CloudQuoteError extends Error {
+  constructor(public readonly cause: unknown, message: string) {
+    super(message);
+    this.name = "CloudQuoteError";
+  }
+}
+```
+
+**Common Error Conditions:**
+
+- Missing API key (throws error on initialization)
+- Invalid API key (returns CloudQuoteError)
+- Network errors (returns CloudQuoteError with HTTP status)
+- API request failures (returns CloudQuoteError)
+
+**Example Error Handling:**
+
+```typescript
+import CloudQuoteService, { CloudQuoteError } from "@tokenring-ai/cloudquote";
+
+try {
+  const service = new CloudQuoteService(app, {
+    apiKey: process.env.CLOUDQUOTE_API_KEY
+  });
+  await service.getJSON('fcon/getQuote', { symbol: 'AAPL' });
+} catch (err) {
+  if (err instanceof CloudQuoteError) {
+    console.error(`CloudQuote Error: ${err.message}`);
+    console.error(`Cause: ${err.cause}`);
+  }
+}
+```
 
 ## Best Practices
 
@@ -620,72 +579,23 @@ const history = await agent.invokeTool('cloudquote_getPriceHistory', {
 
 ### Timezone-Aware Formatting
 
-Price history and tick data are returned with timezone-aware dates. The service uses `America/New_York` timezone for
-date formatting:
-
-```typescript
-// Timestamps are automatically converted to America/New_York timezone
-const ticks = await agent.invokeTool('cloudquote_getPriceTicks', {
-  symbol: 'AAPL'
-});
-// Result dates are in YYYY-MM-DD format (America/New_York timezone)
-```
-
-**Implementation Detail:** The tools use `date-fns-tz` library to convert epoch nanosecond timestamps to timezone-aware
-date strings:
-
-```typescript
-import { format, toZonedTime } from "date-fns-tz";
-
-const zoned = toZonedTime(timestamp, 'America/New_York');
-const dateStr = format(zoned, 'yyyy-MM-dd');
-```
+Price history and tick data are returned with timezone-aware dates. The service uses `America/New_York` timezone for date formatting via the `date-fns-tz` library.
 
 ### Timeframe Handling for Price Ticks
 
-For `getPriceTicks`, the API expects you to request a data range 5 minutes ahead and behind the time you are looking
-for. The tool fetches all available intraday ticks for the symbol:
+For `getPriceTicks`, the API expects you to request a data range 5 minutes ahead and behind the time you are looking for. The tool fetches all available intraday ticks for the symbol.
 
-```typescript
-// Fetches all intraday ticks for the symbol
-const ticks = await agent.invokeTool('cloudquote_getPriceTicks', {
-  symbol: 'AAPL'
-});
-// Returns array of [date, price, cumulativeVolume] tuples
-```
-
-**Note:** The tool does not filter by time range - it returns all available intraday data. You may need to filter the
-results client-side based on your specific time requirements.
+**Note:** The tool does not filter by time range - it returns all available intraday data. You may need to filter the results client-side based on your specific time requirements.
 
 ### News Headline Links
 
-The tool automatically fills in links for news headline data when both `bodyId` and `slug` are available:
-
-```typescript
-const headlines = await agent.invokeTool('cloudquote_getHeadlinesBySecurity', {
-  symbols: 'AAPL'
-});
-
-// Links are automatically populated when available
-headlines.rows.forEach(headline => {
-  if (headline.bodyId && headline.slug) {
-    console.log(headline.link); // Automatically set to https://www.financialcontent.com/article/{slug}
-  }
-});
-```
-
-**Implementation Detail:** The tool iterates through all headline rows and populates the `link` field using the pattern:
-
-```typescript
-row.link = `https://www.financialcontent.com/article/${row.slug}`;
-```
+The tool automatically fills in links for news headline data when both `bodyId` and `slug` are available using the pattern: `https://www.financialcontent.com/article/{slug}`
 
 ### Rate Limiting
 
 Be mindful of API rate limits when making multiple requests. The service includes a 10-second timeout for requests.
 
-**Important:** The `getHeadlinesBySecurity` method uses a different API endpoint (`http://api.newsrpm.com`) than other
-methods (`https://api.cloudquote.io`). Both use the same API key for authentication.
+**Important:** The `getHeadlinesBySecurity` method uses a different API endpoint (`http://api.newsrpm.com`) than other methods (`https://api.cloudquote.io`). Both use the same API key for authentication.
 
 ### Performance Considerations
 
@@ -709,10 +619,8 @@ try {
   if (err instanceof CloudQuoteError) {
     console.error(`API Error: ${err.message}`);
     console.error(`Details: ${err.cause}`);
-    // Handle API-specific errors
   } else {
     console.error(`Unexpected error: ${err}`);
-    // Handle other errors
   }
 }
 ```
@@ -744,8 +652,6 @@ bun test:coverage
 
 The package uses vitest for testing with the configuration in `vitest.config.ts`.
 
-### Test Structure
-
 **Note:** This package does not currently have test files. When adding tests, consider the following test cases:
 
 - **Tool Input Validation**: Ensure required parameters are validated (e.g., non-empty symbols array for getQuote)
@@ -769,7 +675,6 @@ The package uses vitest for testing with the configuration in `vitest.config.ts`
 
 ### Utility Packages
 
-- **@tokenring-ai/utility/http/HTTPRetriever**: HTTP utility for making validated JSON requests
 - **date-fns-tz**: Timezone-aware date formatting library
 - **zod**: Schema validation and type inference
 
@@ -777,3 +682,7 @@ The package uses vitest for testing with the configuration in `vitest.config.ts`
 
 - **CloudQuote API** (`https://api.cloudquote.io`): Financial data API for quotes, history, ticks, and leaders
 - **NewsRPM API** (`http://api.newsrpm.com`): News headlines API for security-related news
+
+## License
+
+MIT License - see LICENSE file for details.
