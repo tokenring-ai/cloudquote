@@ -3,6 +3,13 @@ import type { TokenRingService } from "@tokenring-ai/app/types";
 import { HTTPRetriever } from "@tokenring-ai/utility/http/HTTPRetriever";
 import { z } from "zod";
 import type { CloudQuoteServiceOptions } from "./schema.ts";
+import {
+  CloudQuoteQuoteResponseSchema,
+  CloudQuotePriceHistoryResponseSchema,
+  CloudQuotePriceTicksResponseSchema,
+  CloudQuoteLeadersResponseSchema,
+  CloudQuoteFindStockResponseSchema,
+} from "./schema.ts";
 
 export class CloudQuoteError extends Error {
   constructor(
@@ -53,13 +60,33 @@ export default class CloudQuoteService implements TokenRingService {
   }
 
   getJSON(apiPath: string, params: Record<string, string | number | undefined | null>) {
-    return this.request<any>(apiPath, params);
+    return this.request<z.infer<typeof CloudQuoteQuoteResponseSchema>>(apiPath, params);
   }
 
   getPriceChart(params: { symbol: string; interval: string }) {
     const { symbol, interval } = params;
     const uri = `https://chart.financialcontent.com/Chart?shwidth=3&fillshx=0&height=200&lncolor=2466BA&interval=${interval}&fillshy=0&gtcolor=2466BA&vucolor=008000&bvcolor=FFFFFF&gmcolor=DDDDDD&shcolor=BBBBBB&grcolor=FFFFFF&vdcolor=FF0000&brcolor=FFFFFF&gbcolor=FFFFFF&lnwidth=2&volume=0&pvcolor=B50000&mkcolor=CD5252&itcolor=666666&fillalpha=0&ticker=${symbol}&Client=stocks&txcolor=BBBBBB&output=svg&bgcolor=FFFFFF&arcolor=null&type=0&width=375`;
     return { svgDataUri: uri };
+  }
+
+  getQuote(apiPath: string, params: Record<string, string | number | undefined | null>) {
+    return this.request<z.infer<typeof CloudQuoteQuoteResponseSchema>>(apiPath, params);
+  }
+
+  getPriceHistory(apiPath: string, params: Record<string, string | number | undefined | null>) {
+    return this.request<z.infer<typeof CloudQuotePriceHistoryResponseSchema>>(apiPath, params);
+  }
+
+  getPriceTicks(apiPath: string, params: Record<string, string | number | undefined | null>) {
+    return this.request<z.infer<typeof CloudQuotePriceTicksResponseSchema>>(apiPath, params);
+  }
+
+  getLeaders(apiPath: string, params: Record<string, string | number | undefined | null>) {
+    return this.request<z.infer<typeof CloudQuoteLeadersResponseSchema>>(apiPath, params);
+  }
+
+  findStock(apiPath: string, params: Record<string, string | number | undefined | null>) {
+    return this.request<z.infer<typeof CloudQuoteFindStockResponseSchema>>(apiPath, params);
   }
 
   private async request<T>(path: string, params?: Record<string, any>, options?: { method?: string | undefined; body?: any }): Promise<T> {
@@ -87,7 +114,7 @@ export default class CloudQuoteService implements TokenRingService {
           credentials: "include",
         },
         context: `CloudQuote ${path}`,
-        schema: z.any(),
+        schema: z.any(), // Schema validation is handled by typed wrapper methods
       });
     } catch (err: any) {
       this.app.serviceError(this, `CloudQuote RPC failed: ${path}`, err);

@@ -11,7 +11,7 @@ async function execute({ symbols }: z.output<typeof inputSchema>, agent: Agent):
   if (!symbols || symbols.length === 0) {
     throw new Error("symbols array is required and cannot be empty");
   }
-  const data = await cloudQuoteService.getJSON("fcon/getQuote", {
+  const data = await cloudQuoteService.getQuote("fcon/getQuote", {
     symbol: symbols.join(","),
   });
   return JSON.stringify(data);

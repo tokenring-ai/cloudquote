@@ -5,11 +5,11 @@ import CloudQuoteRpcSchema from "./schema.ts";
 
 export default createRPCEndpoint(CloudQuoteRpcSchema, {
   getQuote(args, app: TokenRingApp) {
-    return app.requireService(CloudQuoteService).getJSON("fcon/getQuote", { symbol: args.symbols.join(",") });
+    return app.requireService(CloudQuoteService).getQuote("fcon/getQuote", { symbol: args.symbols.join(",") });
   },
 
   getPriceHistory(args, app: TokenRingApp) {
-    return app.requireService(CloudQuoteService).getJSON("fcon/getPriceHistory", {
+    return app.requireService(CloudQuoteService).getPriceHistory("fcon/getPriceHistory", {
       symbol: args.symbol,
       from: args.from,
       to: args.to,
@@ -17,11 +17,11 @@ export default createRPCEndpoint(CloudQuoteRpcSchema, {
   },
 
   getPriceTicks(args, app: TokenRingApp) {
-    return app.requireService(CloudQuoteService).getJSON("fcon/getPriceTicks", { symbol: args.symbol });
+    return app.requireService(CloudQuoteService).getPriceTicks("fcon/getPriceTicks", { symbol: args.symbol });
   },
 
   getLeaders(args, app: TokenRingApp) {
-    return app.requireService(CloudQuoteService).getJSON("fcon/getLeaders", {
+    return app.requireService(CloudQuoteService).getLeaders("fcon/getLeaders", {
       list: args.list,
       type: args.type,
       limit: args.limit,
@@ -40,5 +40,15 @@ export default createRPCEndpoint(CloudQuoteRpcSchema, {
 
   getPriceChart(args, app: TokenRingApp) {
     return app.requireService(CloudQuoteService).getPriceChart(args);
+  },
+
+  findStock(args, app: TokenRingApp) {
+    const term = args.search;
+    const search = `SYMBOL/${term}|SYMBOL/${term}*|NAME/${term}*|WORD/${term}|WORD/${term}*`;
+    return app.requireService(CloudQuoteService).findStock("fcon/findStock", {
+      sort: "Popularity",
+      limit: args.limit ?? 10,
+      search,
+    });
   },
 });

@@ -14,7 +14,7 @@ async function execute({ symbol, from, to }: z.output<typeof inputSchema>, agent
     throw new Error("symbol is required");
   }
 
-  const result = await cloudQuoteService.getJSON("fcon/getPriceHistory", {
+  const result = await cloudQuoteService.getPriceHistory("fcon/getPriceHistory", {
     symbol,
     from,
     to,
@@ -23,15 +23,13 @@ async function execute({ symbol, from, to }: z.output<typeof inputSchema>, agent
     throw new Error("Invalid response from getPriceHistory API");
   }
 
-  const rows = result.rows;
-  for (const row of rows) {
-    if (row[0]) {
-      const zoned = toZonedTime(row[0], "America/New_York");
-      row[0] = format(zoned, "yyyy-MM-dd");
-    }
-  }
+  // Create a copy with formatted dates since we can't modify the typed tuples
+  const formattedRows = result.rows.map(row => {
+    const dateStr = row[0] ? format(toZonedTime(row[0], "America/New_York"), "yyyy-MM-dd") : row[0];
+    return [dateStr, row[1], row[2], row[3], row[4], row[5], row[6]] as [string, number, number, number, number, number, number];
+  });
 
-  return JSON.stringify(rows);
+  return JSON.stringify(formattedRows);
 }
 
 const description =

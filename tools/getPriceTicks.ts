@@ -14,22 +14,20 @@ async function execute({ symbol }: z.output<typeof inputSchema>, agent: Agent): 
     throw new Error("symbol is required");
   }
 
-  const result = await cloudQuoteService.getJSON("fcon/getPriceTicks", {
+  const result = await cloudQuoteService.getPriceTicks("fcon/getPriceTicks", {
     symbol,
   });
   if (!result || !Array.isArray(result.rows)) {
     throw new Error("Invalid response from getPriceTicks API");
   }
 
-  const rows = result.rows;
-  for (const row of rows) {
-    if (row[0]) {
-      const zoned = toZonedTime(row[0], "America/New_York");
-      row[0] = format(zoned, "yyyy-MM-dd");
-    }
-  }
+  // Create a copy with formatted dates since we can't modify the typed tuples
+  const formattedRows = result.rows.map(row => {
+    const dateStr = row[0] ? format(toZonedTime(row[0], "America/New_York"), "yyyy-MM-dd") : row[0];
+    return [dateStr, row[1], row[2]] as [string, number, number];
+  });
 
-  return JSON.stringify(rows);
+  return JSON.stringify(formattedRows);
 }
 
 const description =

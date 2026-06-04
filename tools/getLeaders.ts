@@ -12,18 +12,18 @@ async function execute({ list, type, limit, minPrice, maxPrice }: z.output<typeo
     throw new Error("list is required");
   }
 
-  const result = await cloudQuoteService.getJSON("fcon/getLeaders", {
+  const result = await cloudQuoteService.getLeaders("fcon/getLeaders", {
     list,
     type,
     limit,
     minPrice,
     maxPrice,
   });
-  if (!result || !Array.isArray(result.data)) {
+  if (!result || !Array.isArray(result.rows)) {
     throw new Error("Invalid response from getLeaders API");
   }
 
-  return JSON.stringify(result.data);
+  return JSON.stringify(result.rows);
 }
 
 const description =

@@ -1,5 +1,14 @@
 import { z } from "zod";
-import { CloudQuoteQuoteHistoricalItemSchema, CloudQuoteQuoteIntradayItemSchema, CloudQuoteQuoteSchema } from "../schema.ts";
+import {
+  CloudQuoteQuoteSchema,
+  CloudQuoteQuoteHistoricalItemSchema,
+  CloudQuoteQuoteIntradayItemSchema,
+  CloudQuoteQuoteResponseSchema,
+  CloudQuotePriceHistoryResponseSchema,
+  CloudQuotePriceTicksResponseSchema,
+  CloudQuoteLeadersResponseSchema,
+  CloudQuoteFindStockResponseSchema,
+} from "../schema.ts";
 
 const CloudQuoteRpcSchema = {
   name: "CloudQuote RPC",
@@ -10,9 +19,7 @@ const CloudQuoteRpcSchema = {
       input: z.object({
         symbols: z.array(z.string()),
       }),
-      result: z.object({
-        rows: z.array(CloudQuoteQuoteSchema.nullable()),
-      }),
+      result: CloudQuoteQuoteResponseSchema,
     },
     getPriceHistory: {
       type: "query" as const,
@@ -21,18 +28,14 @@ const CloudQuoteRpcSchema = {
         from: z.string().exactOptional(),
         to: z.string().exactOptional(),
       }),
-      result: z.object({
-        rows: z.array(CloudQuoteQuoteHistoricalItemSchema),
-      }),
+      result: CloudQuotePriceHistoryResponseSchema,
     },
     getPriceTicks: {
       type: "query" as const,
       input: z.object({
         symbol: z.string(),
       }),
-      result: z.object({
-        rows: z.array(CloudQuoteQuoteIntradayItemSchema),
-      }),
+      result: CloudQuotePriceTicksResponseSchema,
     },
     getLeaders: {
       type: "query" as const,
@@ -43,9 +46,7 @@ const CloudQuoteRpcSchema = {
         minPrice: z.number().exactOptional(),
         maxPrice: z.number().exactOptional(),
       }),
-      result: z.object({
-        rows: z.array(CloudQuoteQuoteSchema.nullable()),
-      }),
+      result: CloudQuoteLeadersResponseSchema,
     },
     getHeadlinesBySecurity: {
       type: "query" as const,
@@ -69,6 +70,14 @@ const CloudQuoteRpcSchema = {
       result: z.object({
         svgDataUri: z.string(),
       }),
+    },
+    findStock: {
+      type: "query" as const,
+      input: z.object({
+        search: z.string(),
+        limit: z.number().min(1).max(50).exactOptional(),
+      }),
+      result: CloudQuoteFindStockResponseSchema,
     },
   },
 };
