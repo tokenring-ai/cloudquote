@@ -1,13 +1,10 @@
 import { z } from "zod";
 import {
-  CloudQuoteQuoteSchema,
-  CloudQuoteQuoteHistoricalItemSchema,
-  CloudQuoteQuoteIntradayItemSchema,
-  CloudQuoteQuoteResponseSchema,
+  CloudQuoteFindStockResponseSchema,
+  CloudQuoteLeadersResponseSchema,
   CloudQuotePriceHistoryResponseSchema,
   CloudQuotePriceTicksResponseSchema,
-  CloudQuoteLeadersResponseSchema,
-  CloudQuoteFindStockResponseSchema,
+  CloudQuoteQuoteResponseSchema,
 } from "../schema.ts";
 
 const CloudQuoteRpcSchema = {
