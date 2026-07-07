@@ -1,14 +1,15 @@
 import type TokenRingApp from "@tokenring-ai/app";
 import type { TokenRingService } from "@tokenring-ai/app/types";
-import { HTTPRetriever } from "@tokenring-ai/utility/http/HTTPRetriever";
+import formatError from "@tokenring-ai/utility/error/formatError";
+import { HTTPError, HTTPRetriever } from "@tokenring-ai/utility/http/HTTPRetriever";
 import { z } from "zod";
-import type { CloudQuoteServiceOptions } from "./schema.ts";
-import {
-  CloudQuoteQuoteResponseSchema,
+import type {
+  CloudQuoteFindStockResponseSchema,
+  CloudQuoteLeadersResponseSchema,
   CloudQuotePriceHistoryResponseSchema,
   CloudQuotePriceTicksResponseSchema,
-  CloudQuoteLeadersResponseSchema,
-  CloudQuoteFindStockResponseSchema,
+  CloudQuoteQuoteResponseSchema,
+  CloudQuoteServiceOptions,
 } from "./schema.ts";
 
 export class CloudQuoteError extends Error {
@@ -53,7 +54,7 @@ export default class CloudQuoteService implements TokenRingService {
         },
         context: "CloudQuote headlines by security",
       });
-    } catch (err: unknown) {
+    } catch (err) {
       if (err instanceof CloudQuoteError) throw err;
       throw new CloudQuoteError(err, "Failed to get headlines by security");
     }
@@ -116,13 +117,14 @@ export default class CloudQuoteService implements TokenRingService {
         context: `CloudQuote ${path}`,
         schema: z.any(), // Schema validation is handled by typed wrapper methods
       });
-    } catch (err: any) {
+    } catch (err) {
       this.app.serviceError(this, `CloudQuote RPC failed: ${path}`, err);
 
-      if (err.status) {
+      if (err instanceof HTTPError) {
         throw new CloudQuoteError(err.details, `HTTP ${err.status}: ${err.message}`);
       }
-      throw new CloudQuoteError(err, `Failed request to ${path}, ${err.message}`);
+
+      throw new CloudQuoteError(err, `Failed request to ${path}, ${formatError(err)}`);
     }
   }
 }

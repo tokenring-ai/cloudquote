@@ -1,5 +1,6 @@
 import type Agent from "@tokenring-ai/agent/Agent";
 import type { TokenRingToolDefinition, TokenRingToolResult } from "@tokenring-ai/chat/schema";
+import { ToolCallError } from "@tokenring-ai/chat/util/tokenRingTool";
 import { format, toZonedTime } from "date-fns-tz";
 import { z } from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
@@ -11,7 +12,7 @@ async function execute({ symbol, from, to }: z.output<typeof inputSchema>, agent
   const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
 
   if (!symbol) {
-    throw new Error("symbol is required");
+    throw new ToolCallError(name, "symbol is required");
   }
 
   const result = await cloudQuoteService.getPriceHistory("fcon/getPriceHistory", {
@@ -19,9 +20,6 @@ async function execute({ symbol, from, to }: z.output<typeof inputSchema>, agent
     from,
     to,
   });
-  if (!result || !Array.isArray(result.rows)) {
-    throw new Error("Invalid response from getPriceHistory API");
-  }
 
   // Create a copy with formatted dates since we can't modify the typed tuples
   const formattedRows = result.rows.map(row => {

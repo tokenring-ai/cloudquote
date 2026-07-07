@@ -1,5 +1,6 @@
 import type Agent from "@tokenring-ai/agent/Agent";
 import type { TokenRingToolDefinition, TokenRingToolResult } from "@tokenring-ai/chat/schema";
+import { ToolCallError } from "@tokenring-ai/chat/util/tokenRingTool";
 import { z } from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
@@ -8,9 +9,6 @@ const displayName = "Cloudquote/getLeaders";
 
 async function execute({ list, type, limit, minPrice, maxPrice }: z.output<typeof inputSchema>, agent: Agent): Promise<TokenRingToolResult> {
   const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
-  if (!list) {
-    throw new Error("list is required");
-  }
 
   const result = await cloudQuoteService.getLeaders("fcon/getLeaders", {
     list,
@@ -20,7 +18,7 @@ async function execute({ list, type, limit, minPrice, maxPrice }: z.output<typeo
     maxPrice,
   });
   if (!result || !Array.isArray(result.rows)) {
-    throw new Error("Invalid response from getLeaders API");
+    throw new ToolCallError(name, "Invalid response from getLeaders API");
   }
 
   return JSON.stringify(result.rows);

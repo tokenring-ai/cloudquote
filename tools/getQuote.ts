@@ -8,9 +8,7 @@ const displayName = "Cloudquote/getQuote";
 
 async function execute({ symbols }: z.output<typeof inputSchema>, agent: Agent): Promise<TokenRingToolResult> {
   const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
-  if (!symbols || symbols.length === 0) {
-    throw new Error("symbols array is required and cannot be empty");
-  }
+
   const data = await cloudQuoteService.getQuote("fcon/getQuote", {
     symbol: symbols.join(","),
   });
@@ -20,7 +18,7 @@ async function execute({ symbols }: z.output<typeof inputSchema>, agent: Agent):
 const description = "Retrieve pricing and metadata for given security symbols.";
 
 const inputSchema = z.object({
-  symbols: z.array(z.string()).describe("Array of ticker symbols to fetch (e.g. ['AAPL', 'GOOGL', 'MSFT'])."),
+  symbols: z.array(z.string()).min(1).describe("Array of ticker symbols to fetch (e.g. ['AAPL', 'GOOGL', 'MSFT'])."),
 });
 
 export default {
