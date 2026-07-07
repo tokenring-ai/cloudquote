@@ -1,7 +1,7 @@
 import type TokenRingApp from "@tokenring-ai/app";
 import type { TokenRingService } from "@tokenring-ai/app/types";
 import formatError from "@tokenring-ai/utility/error/formatError";
-import { HTTPError, HTTPRetriever } from "@tokenring-ai/utility/http/HTTPRetriever";
+import { type FetchJSONOpts, HTTPError, HTTPRetriever } from "@tokenring-ai/utility/http/HTTPRetriever";
 import { z } from "zod";
 import type {
   CloudQuoteFindStockResponseSchema,
@@ -90,7 +90,11 @@ export default class CloudQuoteService implements TokenRingService {
     return this.request<z.infer<typeof CloudQuoteFindStockResponseSchema>>(apiPath, params);
   }
 
-  private async request<T>(path: string, params?: Record<string, any>, options?: { method?: string | undefined; body?: any }): Promise<T> {
+  private async request<T>(
+    path: string,
+    params?: Record<string, string | number | undefined | null>,
+    options?: { method?: string | undefined; body?: unknown },
+  ): Promise<T> {
     try {
       const queryParams = new URLSearchParams();
       if (params) {
@@ -105,17 +109,17 @@ export default class CloudQuoteService implements TokenRingService {
       const pathWithQuery = `${path}.json${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
       this.app.serviceOutput(this, `CloudQuote RPC: ${pathWithQuery}`);
 
+      const opts: NonNullable<FetchJSONOpts["opts"]> = {
+        method: options?.method || "GET",
+        credentials: "include",
+        ...(options?.body !== undefined ? { body: JSON.stringify(options.body) } : {}),
+      };
+
       return await this.retriever.fetchValidatedJson({
         url: pathWithQuery,
-        opts: {
-          method: options?.method || "GET",
-          ...(options?.body && {
-            body: JSON.stringify(options.body),
-          }),
-          credentials: "include",
-        },
+        opts,
         context: `CloudQuote ${path}`,
-        schema: z.any(), // Schema validation is handled by typed wrapper methods
+        schema: z.unknown() as z.ZodType<T>,
       });
     } catch (err) {
       this.app.serviceError(this, `CloudQuote RPC failed: ${path}`, err);

@@ -1,6 +1,6 @@
 import type Agent from "@tokenring-ai/agent/Agent";
 import type { TokenRingToolDefinition, TokenRingToolResult } from "@tokenring-ai/chat/schema";
-import { ToolCallError } from "@tokenring-ai/chat/util/tokenRingTool";
+
 import { z } from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
@@ -17,10 +17,6 @@ async function execute({ list, type, limit, minPrice, maxPrice }: z.output<typeo
     minPrice,
     maxPrice,
   });
-  if (!result || !Array.isArray(result.rows)) {
-    throw new ToolCallError(name, "Invalid response from getLeaders API");
-  }
-
   return JSON.stringify(result.rows);
 }
 
