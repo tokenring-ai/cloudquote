@@ -14,14 +14,13 @@
     "date-fns-tz": "^3.2.0"
   },
   "devDependencies": {
-    "vitest": "^4.1.1",
     "typescript": "^6.0.2"
   },
   "scripts": {
-    "test": "vitest run",
+    "test": "bun test",
     "build": "tsc --noEmit",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage"
   },
   "license": "MIT",
   "exports": {
