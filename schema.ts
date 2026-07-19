@@ -1,7 +1,7 @@
 import z from "zod";
 
 export const CloudQuoteServiceOptionsSchema = z.looseObject({
-  apiKey: z.string(),
+  apiKey: z.string().meta({ sensitive: true, description: "CloudQuote API key" }),
 });
 
 /**
