@@ -36,7 +36,7 @@ bun add @tokenring-ai/cloudquote
 ### Development Dependencies
 
 - `typescript` (^6.0.2)
-- `vitest` (^4.1.1)
+- `bun test` - Testing framework
 
 ## Chat Commands
 
@@ -650,7 +650,6 @@ bun test:coverage
 
 ### Test Configuration
 
-The package uses vitest for testing with the configuration in `vitest.config.ts`.
 
 **Note:** This package does not currently have test files. When adding tests, consider the following test cases:
 
