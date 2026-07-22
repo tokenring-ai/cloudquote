@@ -27,7 +27,10 @@ async function execute({ symbols, start, count, minDate, maxDate }: z.output<typ
     }
   });
 
-  return JSON.stringify(result);
+  return {
+    message: `**CloudQuote** Retrieved ${((result as any).rows)?.length ?? 0} headlines for ${symbols}`,
+    result: JSON.stringify(result),
+  };
 }
 
 const description = "Retrieve news headlines for one or more ticker symbols within a specified time range.";

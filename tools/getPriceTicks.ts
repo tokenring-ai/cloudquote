@@ -25,7 +25,10 @@ async function execute({ symbol }: z.output<typeof inputSchema>, agent: Agent): 
     return [dateStr, row[1], row[2]] as [string, number, number];
   });
 
-  return JSON.stringify(formattedRows);
+  return {
+    message: `**CloudQuote** Retrieved ${((result as any).rows)?.length ?? 0} price ticks for ${symbol}`,
+    result: JSON.stringify(formattedRows),
+  };
 }
 
 const description =

@@ -12,7 +12,10 @@ async function execute({ symbols }: z.output<typeof inputSchema>, agent: Agent):
   const data = await cloudQuoteService.getQuote("fcon/getQuote", {
     symbol: symbols.join(","),
   });
-  return JSON.stringify(data);
+  return {
+    message: `**CloudQuote** Retrieved quotes for ${symbols.join(", ")}`,
+    result: JSON.stringify(data),
+  };
 }
 
 const description = "Retrieve pricing and metadata for given security symbols.";

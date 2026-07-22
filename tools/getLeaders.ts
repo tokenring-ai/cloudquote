@@ -17,7 +17,10 @@ async function execute({ list, type, limit, minPrice, maxPrice }: z.output<typeo
     minPrice,
     maxPrice,
   });
-  return JSON.stringify(result.rows);
+  return {
+    message: `**CloudQuote** Retrieved ${((result as any).rows)?.length ?? 0} leaders for ${list}`,
+    result: JSON.stringify(result.rows),
+  };
 }
 
 const description =
