@@ -33,5 +33,5 @@ export default {
       app.addServices(new CloudQuoteService(app, config.cloudquote));
     }
   },
-  config: packageConfigSchema,
+  configSchema: packageConfigSchema,
 } satisfies TokenRingPlugin<typeof packageConfigSchema>;
