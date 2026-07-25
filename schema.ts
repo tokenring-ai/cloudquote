@@ -1,7 +1,8 @@
+import { fromEnv, secret, type WithResolvedSecrets } from "@tokenring-ai/secrets/secret";
 import z from "zod";
 
 export const CloudQuoteServiceOptionsSchema = z.looseObject({
-  apiKey: z.string().meta({ sensitive: true, description: "CloudQuote API key" }),
+  apiKey: secret({ description: "CloudQuote API key" }).default(fromEnv("CLOUDQUOTE_API_KEY")),
 });
 
 /**
@@ -207,6 +208,9 @@ export const CloudQuoteFindStockResponseSchema = z.looseObject({
 });
 
 export type CloudQuoteServiceOptions = z.infer<typeof CloudQuoteServiceOptionsSchema>;
+
+/** Options as handed to the service, with the API key secret already resolved. */
+export type ResolvedCloudQuoteServiceOptions = WithResolvedSecrets<CloudQuoteServiceOptions, "apiKey">;
 export type CloudQuoteQuote = z.infer<typeof CloudQuoteQuoteSchema>;
 export type CloudQuoteQuoteResponse = z.infer<typeof CloudQuoteQuoteResponseSchema>;
 export type CloudQuotePriceHistoryResponse = z.infer<typeof CloudQuotePriceHistoryResponseSchema>;

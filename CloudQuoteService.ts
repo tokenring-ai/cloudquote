@@ -9,7 +9,7 @@ import type {
   CloudQuotePriceHistoryResponseSchema,
   CloudQuotePriceTicksResponseSchema,
   CloudQuoteQuoteResponseSchema,
-  CloudQuoteServiceOptions,
+  ResolvedCloudQuoteServiceOptions,
 } from "./schema.ts";
 
 export class CloudQuoteError extends Error {
@@ -30,7 +30,7 @@ export default class CloudQuoteService implements TokenRingService {
 
   constructor(
     private readonly app: TokenRingApp,
-    private readonly options: CloudQuoteServiceOptions,
+    private readonly options: ResolvedCloudQuoteServiceOptions,
   ) {
     this.retriever = new HTTPRetriever({
       baseUrl: "https://api.cloudquote.io",
