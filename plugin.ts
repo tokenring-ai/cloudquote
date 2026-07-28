@@ -18,17 +18,18 @@ export default {
   displayName: "CloudQuote Financial Data",
   version: packageJSON.version,
   description: packageJSON.description,
-  install(app, config) {
-    const { cloudquote } = config;
-
-    const apiKey = resolveSecret(app, cloudquote.apiKey);
-    if (!apiKey) return;
-
+  install(app) {
     app.waitForService(ChatService, chatService => chatService.addTools(...tools));
     app.waitForService(RpcService, rpcService => {
       rpcService.registerEndpoint(cloudquoteRPC);
     });
-    app.addServices(new CloudQuoteService(app, { ...cloudquote, apiKey }));
+    app.addServices(new CloudQuoteService(app));
+  },
+  reconfigure(app, config) {
+    const apiKey = resolveSecret(app, config.cloudquote.apiKey);
+    if (!apiKey) return;
+
+    app.requireService(CloudQuoteService).reconfigure({ ...config.cloudquote, apiKey });
   },
   configSchema: packageConfigSchema,
 } satisfies TokenRingPlugin<typeof packageConfigSchema>;

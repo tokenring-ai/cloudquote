@@ -27,12 +27,23 @@ export default class CloudQuoteService implements TokenRingService {
   description = "Service for accessing CloudQuote financial data API";
 
   private retriever: HTTPRetriever;
+  private options: ResolvedCloudQuoteServiceOptions;
 
   constructor(
     private readonly app: TokenRingApp,
-    private readonly options: ResolvedCloudQuoteServiceOptions,
+    options?: ResolvedCloudQuoteServiceOptions,
   ) {
-    this.retriever = new HTTPRetriever({
+    this.options = options ?? { apiKey: "" };
+    this.retriever = this.createRetriever();
+  }
+
+  reconfigure(options: ResolvedCloudQuoteServiceOptions): void {
+    this.options = options;
+    this.retriever = this.createRetriever();
+  }
+
+  private createRetriever(): HTTPRetriever {
+    return new HTTPRetriever({
       baseUrl: "https://api.cloudquote.io",
       headers: {
         Authorization: `privateKey ${this.options.apiKey}`,
