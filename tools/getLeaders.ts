@@ -8,7 +8,7 @@ const name = "cloudquote_getLeaders";
 const displayName = "Cloudquote/getLeaders";
 
 async function execute({ list, type, limit, minPrice, maxPrice }: z.output<typeof inputSchema>, agent: Agent): Promise<TokenRingToolResult> {
-  const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
+  const cloudQuoteService = agent.requireService(CloudQuoteService);
 
   const result = await cloudQuoteService.getLeaders("fcon/getLeaders", {
     list,

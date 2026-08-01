@@ -9,7 +9,7 @@ const name = "cloudquote_getPriceHistory";
 const displayName = "Cloudquote/getPriceHistory";
 
 async function execute({ symbol, from, to }: z.output<typeof inputSchema>, agent: Agent): Promise<TokenRingToolResult> {
-  const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
+  const cloudQuoteService = agent.requireService(CloudQuoteService);
 
   if (!symbol) {
     throw new ToolCallError(name, "symbol is required");

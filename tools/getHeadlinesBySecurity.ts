@@ -8,7 +8,7 @@ const name = "cloudquote_getHeadlinesBySecurity";
 const displayName = "Cloudquote/getHeadlinesBySecurity";
 
 async function execute({ symbols, start, count, minDate, maxDate }: z.output<typeof inputSchema>, agent: Agent): Promise<TokenRingToolResult> {
-  const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
+  const cloudQuoteService = agent.requireService(CloudQuoteService);
   if (!symbols) {
     throw new ToolCallError(name, "symbols is required");
   }

@@ -7,7 +7,7 @@ const name = "cloudquote_getQuote";
 const displayName = "Cloudquote/getQuote";
 
 async function execute({ symbols }: z.output<typeof inputSchema>, agent: Agent): Promise<TokenRingToolResult> {
-  const cloudQuoteService = agent.requireServiceByType(CloudQuoteService);
+  const cloudQuoteService = agent.requireService(CloudQuoteService);
 
   const data = await cloudQuoteService.getQuote("fcon/getQuote", {
     symbol: symbols.join(","),

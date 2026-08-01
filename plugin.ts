@@ -19,11 +19,11 @@ export default {
   version: packageJSON.version,
   description: packageJSON.description,
   install(app) {
-    app.waitForService(ChatService, chatService => chatService.addTools(...tools));
+    app.waitForService(ChatService, chatService => chatService.addTools(tools));
     app.waitForService(RpcService, rpcService => {
       rpcService.registerEndpoint(cloudquoteRPC);
     });
-    app.addServices(new CloudQuoteService(app));
+    app.addService(new CloudQuoteService(app));
   },
   reconfigure(app, config) {
     const apiKey = resolveSecret(app, config.cloudquote.apiKey);
