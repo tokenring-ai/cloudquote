@@ -5,7 +5,7 @@ import { z } from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
 const name = "cloudquote_getHeadlinesBySecurity";
-const displayName = "Cloudquote/getHeadlinesBySecurity";
+const displayName = "CloudQuote/getHeadlinesBySecurity";
 
 async function execute({ symbols, start, count, minDate, maxDate }: z.output<typeof inputSchema>, agent: Agent): Promise<TokenRingToolResult> {
   const cloudQuoteService = agent.requireService(CloudQuoteService);
@@ -40,7 +40,7 @@ const inputSchema = z.object({
   start: z.number().int().min(0).describe("Number of records to skip before returning results.").exactOptional(),
   count: z.number().int().min(1).max(100).describe("Number of records to retrieve (max 100).").exactOptional(),
   minDate: z.string().describe("Article publication date-time (ISO 8601) for start of date-time range.").exactOptional(),
-  maxDate: z.string().describe("Article publication date-time (ISO 8601) for start of date-time range.").exactOptional(),
+  maxDate: z.string().describe("Article publication date-time (ISO 8601) for end of date-time range.").exactOptional(),
 });
 
 export default {

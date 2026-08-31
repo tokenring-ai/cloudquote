@@ -23,7 +23,7 @@ export default {
     app.waitForService(RpcService, rpcService => {
       rpcService.registerEndpoint(cloudquoteRPC);
     });
-    app.addService(new CloudQuoteService(app));
+    app.addService(CloudQuoteService, new CloudQuoteService(app));
   },
   reconfigure(app, config) {
     const apiKey = resolveSecret(app, config.cloudquote.apiKey);

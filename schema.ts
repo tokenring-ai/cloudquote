@@ -207,6 +207,27 @@ export const CloudQuoteFindStockResponseSchema = z.looseObject({
   rows: z.array(CloudQuoteQuoteSchema),
 });
 
+export const CloudQuoteHeadlinesBySecurityParamsSchema = z.object({
+  symbols: z.string(),
+  start: z.number().exactOptional(),
+  count: z.number().exactOptional(),
+  minDate: z.string().exactOptional(),
+  maxDate: z.string().exactOptional(),
+});
+
+export const CloudQuoteHeadlineSchema = z.looseObject({
+  bodyId: z.string().optional(),
+  slug: z.string().optional(),
+  link: z.string().optional(),
+});
+
+export const CloudQuoteHeadlinesResponseSchema = z.union([
+  z.array(CloudQuoteHeadlineSchema),
+  z.looseObject({
+    rows: z.array(CloudQuoteHeadlineSchema).optional(),
+  }),
+]);
+
 export type CloudQuoteServiceOptions = z.infer<typeof CloudQuoteServiceOptionsSchema>;
 
 /** Options as handed to the service, with the API key secret already resolved. */
@@ -217,3 +238,12 @@ export type CloudQuotePriceHistoryResponse = z.infer<typeof CloudQuotePriceHisto
 export type CloudQuotePriceTicksResponse = z.infer<typeof CloudQuotePriceTicksResponseSchema>;
 export type CloudQuoteLeadersResponse = z.infer<typeof CloudQuoteLeadersResponseSchema>;
 export type CloudQuoteFindStockResponse = z.infer<typeof CloudQuoteFindStockResponseSchema>;
+export type CloudQuoteHeadlinesBySecurityParams = {
+  symbols: string;
+  start?: number | undefined;
+  count?: number | undefined;
+  minDate?: string | undefined;
+  maxDate?: string | undefined;
+};
+export type CloudQuoteHeadline = z.infer<typeof CloudQuoteHeadlineSchema>;
+export type CloudQuoteHeadlinesResponse = z.infer<typeof CloudQuoteHeadlinesResponseSchema>;

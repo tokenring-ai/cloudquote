@@ -6,7 +6,7 @@ import { z } from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
 const name = "cloudquote_getPriceTicks";
-const displayName = "Cloudquote/getPriceTicks";
+const displayName = "CloudQuote/getPriceTicks";
 
 async function execute({ symbol }: z.output<typeof inputSchema>, agent: Agent): Promise<TokenRingToolResult> {
   const cloudQuoteService = agent.requireService(CloudQuoteService);
@@ -21,12 +21,12 @@ async function execute({ symbol }: z.output<typeof inputSchema>, agent: Agent): 
 
   // Create a copy with formatted dates since we can't modify the typed tuples
   const formattedRows = result.rows.map(row => {
-    const dateStr = row[0] ? format(toZonedTime(row[0], "America/New_York"), "yyyy-MM-dd") : row[0];
+    const dateStr = format(toZonedTime(row[0], "America/New_York"), "yyyy-MM-dd");
     return [dateStr, row[1], row[2]] as [string, number, number];
   });
 
   return {
-    message: `**CloudQuote** Retrieved ${((result as any).rows)?.length ?? 0} price ticks for ${symbol}`,
+    message: `**CloudQuote** Retrieved ${result.rows.length} price ticks for ${symbol}`,
     result: JSON.stringify(formattedRows),
   };
 }

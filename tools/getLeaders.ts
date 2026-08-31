@@ -5,7 +5,7 @@ import { z } from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
 const name = "cloudquote_getLeaders";
-const displayName = "Cloudquote/getLeaders";
+const displayName = "CloudQuote/getLeaders";
 
 async function execute({ list, type, limit, minPrice, maxPrice }: z.output<typeof inputSchema>, agent: Agent): Promise<TokenRingToolResult> {
   const cloudQuoteService = agent.requireService(CloudQuoteService);
@@ -18,7 +18,7 @@ async function execute({ list, type, limit, minPrice, maxPrice }: z.output<typeo
     maxPrice,
   });
   return {
-    message: `**CloudQuote** Retrieved ${((result as any).rows)?.length ?? 0} leaders for ${list}`,
+    message: `**CloudQuote** Retrieved ${result.rows.length} leaders for ${list}`,
     result: JSON.stringify(result.rows),
   };
 }

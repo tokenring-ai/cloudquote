@@ -4,7 +4,7 @@ import { z } from "zod";
 import CloudQuoteService from "../CloudQuoteService.ts";
 
 const name = "cloudquote_getQuote";
-const displayName = "Cloudquote/getQuote";
+const displayName = "CloudQuote/getQuote";
 
 async function execute({ symbols }: z.output<typeof inputSchema>, agent: Agent): Promise<TokenRingToolResult> {
   const cloudQuoteService = agent.requireService(CloudQuoteService);

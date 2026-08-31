@@ -1,6 +1,8 @@
 import { z } from "zod";
 import {
   CloudQuoteFindStockResponseSchema,
+  CloudQuoteHeadlinesBySecurityParamsSchema,
+  CloudQuoteHeadlinesResponseSchema,
   CloudQuoteLeadersResponseSchema,
   CloudQuotePriceHistoryResponseSchema,
   CloudQuotePriceTicksResponseSchema,
@@ -47,15 +49,9 @@ const CloudQuoteRpcSchema = {
     },
     getHeadlinesBySecurity: {
       type: "query" as const,
-      input: z.object({
-        symbols: z.string(),
-        start: z.number().exactOptional(),
-        count: z.number().exactOptional(),
-        minDate: z.string().exactOptional(),
-        maxDate: z.string().exactOptional(),
-      }),
+      input: CloudQuoteHeadlinesBySecurityParamsSchema,
       result: z.object({
-        data: z.any(),
+        data: CloudQuoteHeadlinesResponseSchema,
       }),
     },
     getPriceChart: {
