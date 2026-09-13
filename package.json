@@ -26,6 +26,7 @@
   "license": "MIT",
   "exports": {
     ".": "./index.ts",
+    "./frontend/*": "./frontend/*",
     "./*": "./*.ts"
   }
 }
