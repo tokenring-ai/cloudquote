@@ -1,9 +1,9 @@
-import { Building2, Loader2, Search } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
 import ChangeIndicator from "@tokenring-ai/one-frontend/components/ui/ChangeIndicator.tsx";
 import { useClickOutside } from "@tokenring-ai/one-frontend/hooks/useClickOutside.ts";
 import { useDebounce } from "@tokenring-ai/one-frontend/hooks/useDebounce.ts";
 import { useFindStock } from "@tokenring-ai/one-frontend/rpc.ts";
+import { Building2, Loader2, Search } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import { fmt, fmtPrice } from "../formatters.ts";
 import type { StockQuote } from "../types.ts";
 

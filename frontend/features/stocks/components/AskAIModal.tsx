@@ -1,24 +1,32 @@
-import { useMemo } from "react";
 import LaunchAgentModal from "@tokenring-ai/one-frontend/components/ui/LaunchAgentModal.tsx";
-import type { StockHistoricalRow, StockPriceTicksRow, StockQuote } from "../types.ts";
+import { useStockPriceHistory, useStockPriceTicks } from "@tokenring-ai/one-frontend/rpc.ts";
+import { useMemo } from "react";
+import { historyRange } from "../formatters.ts";
+import type { StockQuote } from "../types.ts";
 
 interface AskAIModalProps {
   symbol: string;
   quoteData: StockQuote | undefined;
-  historyRows?: StockHistoricalRow[] | undefined;
-  intradayRows?: StockPriceTicksRow[] | undefined;
   onClose: () => void;
 }
 
-export default function AskAIModal({ symbol, quoteData, historyRows, intradayRows, onClose }: AskAIModalProps) {
+/**
+ * Ask-AI launch dialog. Fetches the last sessions of daily and intraday data
+ * itself (it is only mounted while open) so the quote workspace stays light.
+ */
+export default function AskAIModal({ symbol, quoteData, onClose }: AskAIModalProps) {
+  const range = useMemo(() => historyRange(3), []);
+  const history = useStockPriceHistory(symbol, range.from, range.to);
+  const ticks = useStockPriceTicks(symbol);
+
   const contextData = useMemo(
     () => ({
       symbol,
       quote: quoteData,
-      recentHistory: historyRows?.slice(-20),
-      recentTicks: intradayRows?.slice(-20),
+      recentHistory: history.data?.rows.slice(-20),
+      recentTicks: ticks.data?.rows.slice(-20),
     }),
-    [symbol, quoteData, historyRows, intradayRows],
+    [symbol, quoteData, history.data, ticks.data],
   );
 
   return (

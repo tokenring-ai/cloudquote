@@ -1,12 +1,29 @@
 import type TokenRingApp from "@tokenring-ai/app";
+import { createPollingQueryStream } from "@tokenring-ai/rpc/createPollingQueryStream";
 import { createRPCEndpoint } from "@tokenring-ai/rpc/createRPCEndpoint";
 import CloudQuoteService from "../CloudQuoteService.ts";
 import CloudQuoteRpcSchema from "./schema.ts";
 
+/**
+ * Live quote rows for a symbol set, polled upstream and pushed on change. Every
+ * dashboard panel shares one subscription per symbol list, so a board plus
+ * several quote panels cost one upstream poll, not one each.
+ */
+const streamQuotes = createPollingQueryStream({
+  intervalMs: 15000,
+  poll: (args: { symbols: string[] }, app: TokenRingApp) => app.requireService(CloudQuoteService).getQuote("fcon/getQuote", { symbol: args.symbols.join(",") }),
+});
+
 export default createRPCEndpoint(CloudQuoteRpcSchema, {
+  getStatus(_args, app: TokenRingApp) {
+    return { configured: app.requireService(CloudQuoteService).isConfigured() };
+  },
+
   getQuote(args, app: TokenRingApp) {
     return app.requireService(CloudQuoteService).getQuote("fcon/getQuote", { symbol: args.symbols.join(",") });
   },
+
+  streamQuotes,
 
   getPriceHistory(args, app: TokenRingApp) {
     return app.requireService(CloudQuoteService).getPriceHistory("fcon/getPriceHistory", {
@@ -35,10 +52,6 @@ export default createRPCEndpoint(CloudQuoteRpcSchema, {
       .requireService(CloudQuoteService)
       .getHeadlinesBySecurity(args)
       .then(data => ({ data }));
-  },
-
-  getPriceChart(args, app: TokenRingApp) {
-    return app.requireService(CloudQuoteService).getPriceChart(args);
   },
 
   findStock(args, app: TokenRingApp) {

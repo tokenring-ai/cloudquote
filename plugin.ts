@@ -26,9 +26,9 @@ export default {
     app.addService(CloudQuoteService, new CloudQuoteService(app));
   },
   reconfigure(app, config) {
-    const apiKey = resolveSecret(app, config.cloudquote.apiKey);
-    if (!apiKey) return;
-
+    // An unset key still reconfigures (to ""), so `isConfigured()` reports a
+    // removed key instead of silently keeping the previous one.
+    const apiKey = resolveSecret(app, config.cloudquote.apiKey) ?? "";
     app.requireService(CloudQuoteService).reconfigure({ ...config.cloudquote, apiKey });
   },
   configSchema: packageConfigSchema,

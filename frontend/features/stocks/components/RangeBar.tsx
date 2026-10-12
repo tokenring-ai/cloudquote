@@ -1,11 +1,12 @@
+import type { ReactNode } from "react";
 import { fmtPrice } from "../formatters.ts";
 
 interface RangeBarProps {
   low: number | undefined;
   high: number | undefined;
   current: number | undefined;
-  lowLabel?: string;
-  highLabel?: string;
+  lowLabel?: ReactNode;
+  highLabel?: ReactNode;
 }
 
 export default function RangeBar({ low, high, current, lowLabel, highLabel }: RangeBarProps) {

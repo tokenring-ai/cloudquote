@@ -256,9 +256,8 @@ This package defines the following RPC endpoints under `/rpc/cloudquote`:
 | `getPriceTicks`          | query  | `{ symbol: string }`                                                                                                                     | `{ rows: CloudQuoteQuoteIntradayItemSchema[] }`   | `fcon/getPriceTicks`             |
 | `getLeaders`             | query  | `{ list: "MOSTACTIVE"\|"PERCENTGAINERS"\|"PERCENTLOSERS", type?: "STOCK"\|"ETF", limit?: number, minPrice?: number, maxPrice?: number }` | `{ rows: CloudQuoteQuoteSchema[] }`               | `fcon/getLeaders`                |
 | `getHeadlinesBySecurity` | query  | `{ symbols: string, start?: number, count?: number, minDate?: string, maxDate?: string }`                                                | `{ data: any }`                                   | `newsrpm/getHeadlinesBySecurity` |
-| `getPriceChart`          | query  | `{ symbol: string, interval: string }`                                                                                                   | `{ svgDataUri: string }`                          | N/A (URL generation)             |
 
-**Note:** The `getHeadlinesBySecurity` endpoint uses the NewsRPM API (`http://api.newsrpm.com`) instead of the CloudQuote API. The `getPriceChart` endpoint generates a chart URL from financialcontent.com.
+**Note:** The `getHeadlinesBySecurity` endpoint uses the NewsRPM API (`http://api.newsrpm.com`) instead of the CloudQuote API.
 
 ### RPC Usage Example
 
@@ -292,13 +291,6 @@ const headlines = await rpcClient.getHeadlinesBySecurity({
   count: 10
 });
 console.log(headlines.data);
-
-// Get price chart URL
-const chart = await rpcClient.getPriceChart({
-  symbol: 'AAPL',
-  interval: '1D'
-});
-console.log(chart.svgDataUri);
 ```
 
 ## Schema Definitions
@@ -484,29 +476,6 @@ const headlines = await cloudQuoteService.getHeadlinesBySecurity({
   minDate: '2024-01-01T00:00:00Z',
   maxDate: '2024-01-15T23:59:59Z'
 });
-```
-
-#### `getPriceChart(params: { symbol: string; interval: string }): { svgDataUri: string }`
-
-Generate a price chart URL for a security. Returns a URL string that can be directly used as an image source.
-
-**Parameters:**
-
-- `params` (object): Chart parameters
-  - `symbol` (string): Ticker symbol
-  - `interval` (string): Chart interval (e.g., `'1D'`, `'5D'`, `'1M'`)
-
-**Returns:** `{ svgDataUri: string }` - Chart URL string
-
-**Example:**
-
-```typescript
-const chart = cloudQuoteService.getPriceChart({
-  symbol: 'AAPL',
-  interval: '1D'
-});
-console.log(chart.svgDataUri);
-// Output: "https://chart.financialcontent.com/Chart?..."
 ```
 
 ### CloudQuoteError

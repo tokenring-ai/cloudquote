@@ -1,29 +1,32 @@
-import { Building2, Clock, DollarSign, Globe } from "lucide-react";
 import StatCard from "@tokenring-ai/one-frontend/components/ui/StatCard.tsx";
+import { Building2, Clock, DollarSign, Globe } from "lucide-react";
 import { changeSign, fmt, fmtMarketCap, fmtPrice, fmtTs, fmtVol } from "../formatters.ts";
-import type { StockHistoricalRow, StockQuote } from "../types.ts";
-import PriceLineChart from "./PriceLineChart.tsx";
+import type { StockQuote } from "../types.ts";
 import RangeBar from "./RangeBar.tsx";
+import StocksLoadError from "./StocksLoadError.tsx";
 
 interface OverviewTabProps {
   quote: StockQuote | undefined;
   quoteLoading?: boolean;
-  quoteError?: boolean;
-  history: StockHistoricalRow[] | undefined;
-  historyLoading?: boolean;
-  historyError?: boolean;
+  /** The quote load error, if any; shown (with Retry) only while there is no quote. */
+  quoteError?: unknown;
+  onRetry?: () => void;
 }
 
 function money(n: number | null | undefined): string {
   return n != null && !Number.isNaN(Number(n)) ? `$${fmtPrice(n)}` : "—";
 }
 
-export default function OverviewTab({ quote, quoteLoading, quoteError, history, historyLoading, historyError }: OverviewTabProps) {
+/**
+ * Ranges, key stats and period performance for one symbol — everything the
+ * quote payload carries. The price chart itself lives in the chart card above.
+ */
+export default function OverviewTab({ quote, quoteLoading, quoteError, onRetry }: OverviewTabProps) {
   if (quoteLoading && !quote) {
     return <div className="py-8 text-center text-muted text-sm">Loading quote…</div>;
   }
   if (quoteError && !quote) {
-    return <div className="py-8 text-center text-red-400 text-sm">Failed to load quote</div>;
+    return <StocksLoadError title="Failed to load quote" error={quoteError} onRetry={() => onRetry?.()} />;
   }
   if (!quote) return <div className="py-8 text-center text-muted text-sm">No quote data</div>;
 
@@ -32,6 +35,7 @@ export default function OverviewTab({ quote, quoteLoading, quoteError, history, 
   const peRatio = quote.Price != null && quote.EPS != null && quote.EPS > 0 ? quote.Price / quote.EPS : null;
   // Zero dividend is a real value (0%), not missing data
   const dividendYield = quote.AnnualDividend != null && quote.Price != null && quote.Price !== 0 ? (quote.AnnualDividend / quote.Price) * 100 : null;
+  const relativeVolume = quote.Volume != null && quote.AverageVolume ? quote.Volume / quote.AverageVolume : null;
 
   return (
     <div className="space-y-4">
@@ -62,27 +66,15 @@ export default function OverviewTab({ quote, quoteLoading, quoteError, history, 
             low={quote.Low52}
             high={quote.High52}
             current={price}
-            lowLabel={quote.Low52 != null ? `L ${money(quote.Low52)}` : "L —"}
-            highLabel={quote.High52 != null ? `H ${money(quote.High52)}` : "H —"}
+            lowLabel={
+              quote.Low52 != null ? <span title={quote.Low52Date ? `Low on ${fmtTs(quote.Low52Date)}` : undefined}>L {money(quote.Low52)}</span> : "L —"
+            }
+            highLabel={
+              quote.High52 != null ? <span title={quote.High52Date ? `High on ${fmtTs(quote.High52Date)}` : undefined}>H {money(quote.High52)}</span> : "H —"
+            }
           />
         </div>
       </div>
-
-      {history && history.length > 1 ? (
-        <div className="bg-secondary rounded-xl border border-primary p-3">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-xs uppercase tracking-wide text-muted">Recent Price</span>
-            <span className="text-xs text-muted">{history.length} sessions</span>
-          </div>
-          <PriceLineChart rows={history} />
-        </div>
-      ) : historyLoading ? (
-        <div className="bg-secondary rounded-xl border border-primary p-3 h-32 flex items-center justify-center text-sm text-muted">Loading price history…</div>
-      ) : historyError ? (
-        <div className="bg-secondary rounded-xl border border-primary p-3 h-20 flex items-center justify-center text-sm text-red-400">
-          Failed to load price history
-        </div>
-      ) : null}
 
       <div>
         <div className="text-xs uppercase tracking-wide text-muted font-bold mb-2 px-1">Key Stats</div>
@@ -90,6 +82,11 @@ export default function OverviewTab({ quote, quoteLoading, quoteError, history, 
           <StatCard label="Open" value={money(quote.Open)} />
           <StatCard label="Prev Close" value={money(quote.PrevClose)} />
           <StatCard label="Volume" value={fmtVol(quote.Volume)} sub={quote.AverageVolume ? `Avg ${fmtVol(quote.AverageVolume)}` : undefined} />
+          <StatCard
+            label="Rel. Volume"
+            value={relativeVolume != null ? `${fmt(relativeVolume)}×` : "—"}
+            accent={relativeVolume == null ? "neutral" : relativeVolume >= 1 ? "up" : "down"}
+          />
           <StatCard label="Market Cap" value={fmtMarketCap(quote.Price, quote.SharesOutstanding)} />
           <StatCard
             label="P/E Ratio"
@@ -100,6 +97,15 @@ export default function OverviewTab({ quote, quoteLoading, quoteError, history, 
             label="Dividend Yield"
             value={dividendYield != null ? `${fmt(dividendYield)}%` : "—"}
             sub={quote.AnnualDividend != null ? `Annual $${fmt(quote.AnnualDividend)}` : undefined}
+          />
+          <StatCard
+            label="TTM Dividend"
+            value={quote.TTMDividend != null ? `$${fmt(quote.TTMDividend)}` : "—"}
+            sub={
+              quote.LatestDividend != null
+                ? `Last $${fmt(quote.LatestDividend)}${quote.LatestDividendDate ? ` · ${fmtTs(quote.LatestDividendDate)}` : ""}`
+                : undefined
+            }
           />
           <StatCard
             label="50-Day MA"
@@ -119,6 +125,11 @@ export default function OverviewTab({ quote, quoteLoading, quoteError, history, 
             sub={quote.AfterHoursTradeTime ? fmtTs(quote.AfterHoursTradeTime, "datetime") : undefined}
           />
           <StatCard label="Shares Out" value={quote.SharesOutstanding ? fmtVol(quote.SharesOutstanding) : "—"} />
+          <StatCard
+            label="3M Avg Volume"
+            value={quote.AvgVolume3M ? fmtVol(quote.AvgVolume3M) : "—"}
+            sub={quote.AvgVolume52 ? `52W ${fmtVol(quote.AvgVolume52)}` : undefined}
+          />
         </div>
       </div>
 

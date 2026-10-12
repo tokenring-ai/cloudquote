@@ -44,6 +44,11 @@ export default class CloudQuoteService implements TokenRingService {
     this.retriever = this.createRetriever();
   }
 
+  /** Whether an API key has been resolved; every request fails without one. */
+  isConfigured(): boolean {
+    return this.options.apiKey.trim().length > 0;
+  }
+
   private createRetriever(): HTTPRetriever {
     return new HTTPRetriever({
       baseUrl: "https://api.cloudquote.io",
@@ -78,12 +83,6 @@ export default class CloudQuoteService implements TokenRingService {
 
   getJSON(apiPath: string, params: Record<string, string | number | undefined | null>) {
     return this.request(apiPath, params, CloudQuoteQuoteResponseSchema);
-  }
-
-  getPriceChart(params: { symbol: string; interval: string }) {
-    const { symbol, interval } = params;
-    const uri = `https://chart.financialcontent.com/Chart?shwidth=3&fillshx=0&height=200&lncolor=2466BA&interval=${encodeURIComponent(interval)}&fillshy=0&gtcolor=2466BA&vucolor=008000&bvcolor=FFFFFF&gmcolor=DDDDDD&shcolor=BBBBBB&grcolor=FFFFFF&vdcolor=FF0000&brcolor=FFFFFF&gbcolor=FFFFFF&lnwidth=2&volume=0&pvcolor=B50000&mkcolor=CD5252&itcolor=666666&fillalpha=0&ticker=${encodeURIComponent(symbol)}&Client=stocks&txcolor=BBBBBB&output=svg&bgcolor=FFFFFF&arcolor=null&type=0&width=375`;
-    return { svgDataUri: uri };
   }
 
   getQuote(apiPath: string, params: Record<string, string | number | undefined | null>) {
@@ -123,8 +122,11 @@ export default class CloudQuoteService implements TokenRingService {
 
       queryParams.set("T", this.options.apiKey);
 
-      const pathWithQuery = `${path}.json${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
-      this.app.serviceOutput(this, `CloudQuote RPC: ${pathWithQuery}`);
+      // The query string carries the API key (`T`), so the log copy redacts it;
+      // the fetch itself keeps the real query params.
+      const loggedParams = new URLSearchParams(queryParams);
+      if (loggedParams.has("T")) loggedParams.set("T", "***redacted***");
+      this.app.serviceOutput(this, `CloudQuote RPC: ${path}.json?${loggedParams.toString()}`);
 
       const opts: NonNullable<FetchJSONOpts["opts"]> = {
         method: options?.method || "GET",
@@ -133,7 +135,7 @@ export default class CloudQuoteService implements TokenRingService {
       };
 
       return await this.retriever.fetchValidatedJson({
-        url: pathWithQuery,
+        url: `${path}.json?${queryParams.toString()}`,
         opts,
         context: `CloudQuote ${path}`,
         schema,

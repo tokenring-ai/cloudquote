@@ -13,8 +13,23 @@ const CloudQuoteRpcSchema = {
   name: "CloudQuote RPC",
   path: "/rpc/cloudquote",
   methods: {
+    getStatus: {
+      type: "query" as const,
+      input: z.object({}),
+      result: z.object({
+        /** False when no CloudQuote API key is set (config `cloudquote.apiKey` / env CLOUDQUOTE_API_KEY). */
+        configured: z.boolean(),
+      }),
+    },
     getQuote: {
       type: "query" as const,
+      input: z.object({
+        symbols: z.array(z.string()),
+      }),
+      result: CloudQuoteQuoteResponseSchema,
+    },
+    streamQuotes: {
+      type: "stream" as const,
       input: z.object({
         symbols: z.array(z.string()),
       }),
@@ -52,16 +67,6 @@ const CloudQuoteRpcSchema = {
       input: CloudQuoteHeadlinesBySecurityParamsSchema,
       result: z.object({
         data: CloudQuoteHeadlinesResponseSchema,
-      }),
-    },
-    getPriceChart: {
-      type: "query" as const,
-      input: z.object({
-        symbol: z.string(),
-        interval: z.string(),
-      }),
-      result: z.object({
-        svgDataUri: z.string(),
       }),
     },
     findStock: {

@@ -1,79 +1,100 @@
-import { BarChart2, BotMessageSquare, Clock, Loader2, Newspaper, TrendingUp } from "lucide-react";
-import type React from "react";
-import { useMemo, useState } from "react";
 import ChangeIndicator from "@tokenring-ai/one-frontend/components/ui/ChangeIndicator.tsx";
-import { useStockPriceHistory, useStockPriceTicks, useStockQuote } from "@tokenring-ai/one-frontend/rpc.ts";
-import { fmt, fmtPrice, fmtTs, historyRange } from "../formatters.ts";
-import type { Tab } from "../types.ts";
+import StatusBadge from "@tokenring-ai/one-frontend/components/ui/StatusBadge.tsx";
+import { useLiveStreamStatusFromSWR } from "@tokenring-ai/one-frontend/hooks/useLiveStreamStatus.ts";
+import { useStockQuotesStream } from "@tokenring-ai/one-frontend/rpc.ts";
+import { BotMessageSquare, CandlestickChart, Clock, History, Loader2, Newspaper, Star } from "lucide-react";
+import { useMemo, useState } from "react";
+import { fmt, fmtPrice, fmtTs } from "../formatters.ts";
+import { useWatchlist } from "../watchlist.ts";
 import AskAIModal from "./AskAIModal.tsx";
-import ChartTab from "./ChartTab.tsx";
-import HistoryTab from "./HistoryTab.tsx";
-import NewsTab from "./NewsTab.tsx";
 import OverviewTab from "./OverviewTab.tsx";
+import PriceChartCard from "./PriceChartCard.tsx";
 
 interface StockDetailProps {
   symbol: string;
   onClear: () => void;
+  /** Opens one of the per-symbol tool views (chart, news, history) in the main area. */
+  onOpenTool: (viewId: string, symbol: string) => void;
+  chartViewId: string;
+  newsViewId: string;
+  historyViewId: string;
 }
 
-export default function StockDetail({ symbol, onClear }: StockDetailProps) {
-  const [tab, setTab] = useState<Tab>("overview");
+/**
+ * The symbol workspace: live quote header, the interactive price chart, and
+ * the overview sections (ranges, key stats, performance). The advanced chart,
+ * news and history live in their own dock views — the header buttons open them
+ * beside this panel.
+ */
+export default function StockDetail({ symbol, onClear, onOpenTool, chartViewId, newsViewId, historyViewId }: StockDetailProps) {
   const [showAskAI, setShowAskAI] = useState(false);
+  const watchlist = useWatchlist();
 
-  const overviewRange = useMemo(() => historyRange(3), []);
+  const quotes = useStockQuotesStream([symbol]);
+  const live = useLiveStreamStatusFromSWR(quotes);
+  const quoteRow = quotes.data?.rows[0];
 
-  const quote = useStockQuote([symbol]);
-  const history = useStockPriceHistory(symbol, overviewRange.from, overviewRange.to);
-  const ticks = useStockPriceTicks(symbol);
-
-  const quoteRow = quote.data?.rows[0];
-
-  const price = quoteRow?.Price;
-  const change = quoteRow?.Change;
-  const changePct = quoteRow?.ChangePercent;
-  const companyName = quoteRow?.Name ?? symbol;
-  const isFlat = !(Number(change) > 0 || Number(change) < 0);
-
-  const logo =
-    (quoteRow as { CLLogoBright128?: string; CLIconBright128?: string } | null)?.CLLogoBright128 ??
-    (quoteRow as { CLIconBright128?: string } | null)?.CLIconBright128;
-
-  const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
-    { key: "overview", label: "Overview", icon: <BarChart2 className="w-3.5 h-3.5" /> },
-    { key: "chart", label: "Chart", icon: <TrendingUp className="w-3.5 h-3.5" /> },
-    { key: "history", label: "History", icon: <Clock className="w-3.5 h-3.5" /> },
-    { key: "news", label: "News", icon: <Newspaper className="w-3.5 h-3.5" /> },
-  ];
+  const watched = watchlist.isWatched(symbol);
+  const tools = useMemo(
+    () => [
+      { viewId: chartViewId, label: "Chart", icon: <CandlestickChart className="w-3.5 h-3.5" /> },
+      { viewId: newsViewId, label: "News", icon: <Newspaper className="w-3.5 h-3.5" /> },
+      { viewId: historyViewId, label: "History", icon: <History className="w-3.5 h-3.5" /> },
+    ],
+    [chartViewId, historyViewId, newsViewId],
+  );
 
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4 px-4 py-4 bg-secondary border border-primary rounded-2xl">
         <div className="flex items-start gap-3 min-w-0">
-          {logo && (
-            <div className="w-12 h-12 rounded-lg bg-primary border border-primary flex items-center justify-center overflow-hidden shrink-0">
-              <img src={logo} alt={`${symbol} logo`} className="w-full h-full object-contain p-1" />
-            </div>
-          )}
+          {(() => {
+            const logo =
+              (quoteRow as { CLLogoBright128?: string } | null)?.CLLogoBright128 ?? (quoteRow as { CLIconBright128?: string } | null)?.CLIconBright128;
+            if (!logo) return null;
+            return (
+              <div className="w-12 h-12 rounded-lg bg-primary border border-primary flex items-center justify-center overflow-hidden shrink-0">
+                <img src={logo} alt={`${symbol} logo`} className="w-full h-full object-contain p-1" />
+              </div>
+            );
+          })()}
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-0.5 flex-wrap">
               <span className="text-lg font-bold text-accent-soft">{symbol}</span>
-              {companyName !== symbol && <span className="text-sm text-secondary truncate">{companyName}</span>}
+              {(quoteRow?.Name ?? symbol) !== symbol && <span className="text-sm text-secondary truncate">{quoteRow?.Name}</span>}
               {quoteRow?.ExchangeShortName && (
                 <span className="text-xs px-1.5 py-0.5 bg-primary border border-primary rounded text-muted">{quoteRow.ExchangeShortName}</span>
               )}
             </div>
             <div className="flex items-baseline gap-2 flex-wrap">
-              {quote.isLoading && !quoteRow ? (
+              {quotes.isLoading && !quoteRow ? (
                 <Loader2 className="w-4 h-4 animate-spin text-muted" />
-              ) : quote.error && !quoteRow ? (
-                <span className="text-sm text-red-400">Failed to load quote</span>
-              ) : price != null ? (
+              ) : quotes.error && !quoteRow ? (
+                <span className="flex items-center gap-2 text-sm text-red-400">
+                  Failed to load quote
+                  <button
+                    type="button"
+                    onClick={() => void quotes.mutate()}
+                    className="text-xs text-accent hover:text-accent-soft transition-colors cursor-pointer focus-ring"
+                  >
+                    Retry
+                  </button>
+                </span>
+              ) : quoteRow?.Price != null ? (
                 <>
-                  <span className="text-3xl font-bold text-primary">${fmtPrice(price)}</span>
-                  {!isFlat && (
-                    <ChangeIndicator change={change} changePercent={changePct} formatChange={fmt} formatPercent={fmt} className="text-sm font-medium" />
+                  <span className="text-3xl font-bold text-primary">${fmtPrice(quoteRow.Price)}</span>
+                  <ChangeIndicator
+                    change={quoteRow.Change}
+                    changePercent={quoteRow.ChangePercent}
+                    formatChange={fmt}
+                    formatPercent={fmt}
+                    className="text-sm font-medium"
+                  />
+                  {quoteRow.LastTradeTime && (
+                    <span className="text-xs text-muted flex items-center gap-1">
+                      <Clock className="w-3 h-3" /> {fmtTs(quoteRow.LastTradeTime, "datetime")}
+                    </span>
                   )}
-                  {quoteRow?.LastTradeTime && <span className="text-xs text-muted">· {fmtTs(quoteRow.LastTradeTime, "datetime")}</span>}
                 </>
               ) : (
                 <span className="text-sm text-muted">Price unavailable</span>
@@ -81,60 +102,65 @@ export default function StockDetail({ symbol, onClear }: StockDetailProps) {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={() => setShowAskAI(true)}
-            className="flex items-center gap-1.5 px-3 py-2 bg-accent hover:bg-accent-hover text-white text-xs font-medium rounded-lg transition-colors cursor-pointer focus-ring"
-          >
-            <BotMessageSquare className="w-3.5 h-3.5" />
-            Ask AI
-          </button>
-          <button
-            type="button"
-            onClick={onClear}
-            className="px-3 py-2 text-xs text-muted hover:text-primary bg-secondary border border-primary rounded-lg transition-colors cursor-pointer"
-            aria-label="Close"
-          >
-            ✕
-          </button>
+        <div className="flex flex-col items-end gap-2 shrink-0">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => watchlist.toggle(symbol)}
+              aria-pressed={watched}
+              aria-label={watched ? `Remove ${symbol} from watchlist` : `Add ${symbol} to watchlist`}
+              className={`p-2 rounded-lg border transition-colors cursor-pointer focus-ring ${
+                watched ? "text-amber-400 border-amber-400/40 bg-amber-400/10" : "text-muted hover:text-primary border-primary bg-secondary"
+              }`}
+            >
+              <Star className={`w-4 h-4 ${watched ? "fill-current" : ""}`} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowAskAI(true)}
+              className="flex items-center gap-1.5 px-3 py-2 btn-accent text-xs font-medium rounded-lg transition-colors cursor-pointer focus-ring"
+            >
+              <BotMessageSquare className="w-3.5 h-3.5" />
+              Ask AI
+            </button>
+            <button
+              type="button"
+              onClick={onClear}
+              className="px-3 py-2 text-xs text-muted hover:text-primary bg-secondary border border-primary rounded-lg transition-colors cursor-pointer"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="flex items-center gap-1.5">
+            {tools.map(tool => (
+              <button
+                key={tool.viewId}
+                type="button"
+                onClick={() => onOpenTool(tool.viewId, symbol)}
+                className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-muted hover:text-primary bg-secondary border border-primary rounded-md transition-colors cursor-pointer focus-ring"
+                title={`Open ${symbol} ${tool.label.toLowerCase()} beside this panel`}
+              >
+                {tool.icon} {tool.label}
+              </button>
+            ))}
+          </div>
+          <StatusBadge {...liveBadge(live.status)} variant="pill" />
         </div>
       </div>
 
-      <div className="flex gap-1 border-b border-primary pb-0 mb-1">
-        {tabs.map(t => (
-          <button
-            type="button"
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 -mb-px transition-colors cursor-pointer focus-ring ${
-              tab === t.key ? "border-accent text-primary" : "border-transparent text-muted hover:text-primary"
-            }`}
-          >
-            {t.icon} {t.label}
-          </button>
-        ))}
-      </div>
+      <PriceChartCard symbol={symbol} height={280} />
 
-      <div>
-        {tab === "overview" && (
-          <OverviewTab
-            quote={quoteRow}
-            quoteLoading={quote.isLoading}
-            quoteError={!!quote.error}
-            history={history.data?.rows}
-            historyLoading={history.isLoading}
-            historyError={!!history.error}
-          />
-        )}
-        {tab === "chart" && <ChartTab symbol={symbol} />}
-        {tab === "history" && <HistoryTab symbol={symbol} />}
-        {tab === "news" && <NewsTab symbol={symbol} {...(quoteRow?.SymbolID !== undefined && { symbolId: quoteRow.SymbolID })} />}
-      </div>
+      <OverviewTab quote={quoteRow} quoteLoading={quotes.isLoading} quoteError={quotes.error} onRetry={() => void quotes.mutate()} />
 
-      {showAskAI && (
-        <AskAIModal symbol={symbol} quoteData={quoteRow} historyRows={history.data?.rows} intradayRows={ticks.data?.rows} onClose={() => setShowAskAI(false)} />
-      )}
+      {showAskAI && <AskAIModal symbol={symbol} quoteData={quoteRow} onClose={() => setShowAskAI(false)} />}
     </div>
   );
+}
+
+function liveBadge(status: string): { label: string; dotColor: string; pulse?: boolean; colorClass: string } {
+  if (status === "live") return { label: "Live", dotColor: "bg-emerald-500", pulse: true, colorClass: "text-emerald-500" };
+  if (status === "reconnecting") return { label: "Reconnecting", dotColor: "bg-amber-500", colorClass: "text-amber-500" };
+  if (status === "connecting") return { label: "Connecting", dotColor: "bg-amber-500", pulse: true, colorClass: "text-amber-500" };
+  return { label: "Offline", dotColor: "bg-red-500", colorClass: "text-red-500" };
 }
