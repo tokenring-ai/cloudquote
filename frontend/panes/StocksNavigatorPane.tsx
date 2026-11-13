@@ -14,8 +14,8 @@ import SymbolSearchBox from "../features/stocks/components/SymbolSearchBox.tsx";
 import { fmt, fmtPrice, fmtVol } from "../features/stocks/formatters.ts";
 import type { StockQuote } from "../features/stocks/types.ts";
 import { useWatchlist } from "../features/stocks/watchlist.ts";
-import { useStocksNavigation } from "../lib/stocksShared.ts";
-import { STOCKS_DASHBOARD_ID } from "../manifest.ts";
+import { STOCKS_GRADIENT } from "../ids.ts";
+import { useStocksLayoutNavigation } from "../lib/useStocksLayoutNavigation.ts";
 
 const MOVERS_TABS = [
   { key: "PERCENTGAINERS", label: "Gainers" },
@@ -30,8 +30,8 @@ type MoversTab = (typeof MOVERS_TABS)[number]["key"];
  * via the shared quote stream) and the market movers boards. Rows open the
  * symbol's market panel in the main area; elsewhere they navigate to Stocks.
  */
-export default function StocksNavigatorView() {
-  const { openSymbol } = useStocksNavigation();
+export default function StocksNavigatorPane() {
+  const { openSymbol } = useStocksLayoutNavigation();
   const [inputValue, setInputValue] = useState("");
   const [moversTab, setMoversTab] = useState<MoversTab>("MOSTACTIVE");
   const [securityType, setSecurityType] = useState<"STOCK" | "ETF" | null>(null);
@@ -58,7 +58,8 @@ export default function StocksNavigatorView() {
       header={
         <ViewHeader
           variant="navigator"
-          dashboardId={STOCKS_DASHBOARD_ID}
+          icon={TrendingUp}
+          iconGradient={STOCKS_GRADIENT}
           title="Stocks"
           subtitle={watchStatus.isStale ? undefined : "Search · watchlist · movers"}
         />

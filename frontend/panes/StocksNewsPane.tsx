@@ -4,24 +4,22 @@ import ListItemWithActions from "@tokenring-ai/one-frontend/components/ui/ListIt
 import LoadingState from "@tokenring-ai/one-frontend/components/ui/LoadingState.tsx";
 import ViewHeader from "@tokenring-ai/one-frontend/components/ui/ViewHeader.tsx";
 import ViewShell from "@tokenring-ai/one-frontend/components/ui/ViewShell.tsx";
-import type { ViewProps } from "@tokenring-ai/one-frontend/dock/types.ts";
-import { newsrpmRPCClient, useStockQuotesStream, useTypedSWR } from "@tokenring-ai/one-frontend/rpc.ts";
-import { ArrowLeft, ExternalLink, Newspaper } from "lucide-react";
+import type { ViewProps } from "@tokenring-ai/one-frontend/layout/define.ts";
+import { newsrpmRPCClient, useTypedSWR } from "@tokenring-ai/one-frontend/rpc.ts";
+import { ArrowLeft, ExternalLink, Newspaper, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { type StockNewsArticle, useStockNews } from "../features/stocks/useStockNews.ts";
-import type { SymbolParams } from "../lib/stocksShared.ts";
-import { STOCKS_DASHBOARD_ID } from "../manifest.ts";
+import { STOCKS_GRADIENT } from "../ids.ts";
 
 /**
  * Per-symbol news. Headlines come from NewsRPM's ticker-tagged search (with
  * CloudQuote headlines as the last resort); articles with a bodyId open in an
  * in-app reader, the rest link out.
  */
-export default function StocksNewsView({ params }: ViewProps<SymbolParams>) {
+export default function StocksNewsPane({ params }: ViewProps) {
+  const symbol = params.symbol ?? "";
   const [selected, setSelected] = useState<StockNewsArticle | null>(null);
-  const quotes = useStockQuotesStream([params.symbol]);
-  const symbolId = quotes.data?.rows[0]?.SymbolID;
-  const news = useStockNews(params.symbol, symbolId);
+  const news = useStockNews(symbol);
 
   return (
     <ViewShell
@@ -29,8 +27,9 @@ export default function StocksNewsView({ params }: ViewProps<SymbolParams>) {
       header={
         <ViewHeader
           variant="panel"
-          dashboardId={STOCKS_DASHBOARD_ID}
-          title={`News · ${params.symbol}`}
+          icon={TrendingUp}
+          iconGradient={STOCKS_GRADIENT}
+          title={`News · ${symbol}`}
           actions={
             selected
               ? [
@@ -52,9 +51,9 @@ export default function StocksNewsView({ params }: ViewProps<SymbolParams>) {
       ) : news.isLoading ? (
         <LoadingState size="sm" className="py-8" />
       ) : news.error && !news.articles.length ? (
-        <ErrorState error={news.error} title={`Failed to load news for ${params.symbol}`} variant="page" className="py-8" />
+        <ErrorState error={news.error} title={`Failed to load news for ${symbol}`} variant="page" className="py-8" />
       ) : news.articles.length === 0 ? (
-        <EmptyState icon={Newspaper} title={`No news for ${params.symbol}`} variant="page" className="py-8" />
+        <EmptyState icon={Newspaper} title={`No news for ${symbol}`} variant="page" className="py-8" />
       ) : (
         <div className="h-full min-h-0 overflow-y-auto space-y-2 pr-1" data-testid="stocks-news-list">
           {news.articles.map((article, i) => (

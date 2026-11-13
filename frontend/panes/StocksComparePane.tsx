@@ -1,17 +1,21 @@
+import { useRouteParamsFor } from "@tokenring-ai/one-frontend/apps/panelHooks.ts";
 import EmptyState from "@tokenring-ai/one-frontend/components/ui/EmptyState.tsx";
 import ViewHeader from "@tokenring-ai/one-frontend/components/ui/ViewHeader.tsx";
 import ViewShell from "@tokenring-ai/one-frontend/components/ui/ViewShell.tsx";
-import type { ViewProps } from "@tokenring-ai/one-frontend/dock/types.ts";
+import type { ViewProps } from "@tokenring-ai/one-frontend/layout/define.ts";
+import { usePaneLink } from "@tokenring-ai/one-frontend/layout/hooks.ts";
 import { useStockPriceHistory } from "@tokenring-ai/one-frontend/rpc.ts";
-import { GitCompareArrows, Plus, X } from "lucide-react";
+import { Button, TextField } from "@tokenring-ai/one-frontend/ui";
+import { GitCompareArrows, Plus, TrendingUp, X } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { historyToLine, type LinePoint } from "../features/stocks/charts/chartData.ts";
 import { normalizedPerformance, periodReturn } from "../features/stocks/charts/compare.ts";
 import PriceChart from "../features/stocks/charts/PriceChart.tsx";
 import { fmt, historyRange } from "../features/stocks/formatters.ts";
 import { useWatchlist } from "../features/stocks/watchlist.ts";
-import { type CompareParams, MAX_COMPARE_SYMBOLS, normalizeSymbol, normalizeSymbols } from "../lib/stocksShared.ts";
-import { STOCKS_DASHBOARD_ID } from "../manifest.ts";
+import { STOCKS_COMPARE_VIEW_ID, STOCKS_GRADIENT } from "../ids.ts";
+import { MAX_COMPARE_SYMBOLS, normalizeSymbol } from "../lib/symbols.ts";
+import { compareParams, parseCompareSymbols } from "../lib/useStocksLayoutNavigation.ts";
 
 const MAX_COMPARE = MAX_COMPARE_SYMBOLS;
 const SERIES_COLORS = ["#10b981", "#6366f1", "#f59e0b", "#06b6d4"];
@@ -35,29 +39,22 @@ function useSymbolCloses(symbol: string | undefined) {
  * returns table. Seeded from params (the screener hands a selection over) and
  * editable via the chip picker.
  */
-export default function StocksCompareView({ params, panel }: ViewProps<CompareParams>) {
+export default function StocksComparePane({ params }: ViewProps) {
   const watchlist = useWatchlist();
   const [draft, setDraft] = useState("");
 
-  // One list: initialised from the panel params, every edit written back to
-  // them (so the layout persists it), and replaced when the params change from
-  // outside — "Compare selected" updates the open panel in place.
-  const paramsKey = JSON.stringify(normalizeSymbols(params.symbols ?? []));
-  const [seenParamsKey, setSeenParamsKey] = useState(paramsKey);
-  const [symbols, setSymbolsState] = useState<string[]>(() => normalizeSymbols(params.symbols ?? []));
-  if (seenParamsKey !== paramsKey) {
-    setSeenParamsKey(paramsKey);
-    setSymbolsState(normalizeSymbols(params.symbols ?? []));
-  }
+  // The symbol list lives in the URL (`/stocks/compare/AAPL,MSFT`): one compare
+  // panel follows it, so "Compare selected" from the screener re-seeds it in
+  // place and every edit here navigates to the new list.
+  const open = usePaneLink();
+  const routeParams = useRouteParamsFor(STOCKS_COMPARE_VIEW_ID);
+  const symbols = useMemo(() => parseCompareSymbols((routeParams ?? params).symbols), [routeParams, params]);
 
   const setSymbols = useCallback(
     (next: string[]) => {
-      const normalized = normalizeSymbols(next).slice(0, MAX_COMPARE);
-      setSymbolsState(normalized);
-      // `symbols` must be non-empty when present.
-      panel.updateParams({ symbols: normalized.length > 0 ? normalized : undefined });
+      open(STOCKS_COMPARE_VIEW_ID, compareParams(parseCompareSymbols(next.join(","))));
     },
-    [panel],
+    [open],
   );
 
   const s1 = useSymbolCloses(symbols[0]);
@@ -94,7 +91,11 @@ export default function StocksCompareView({ params, panel }: ViewProps<ComparePa
   const seedFromWatchlist = () => setSymbols(watchlist.symbols);
 
   return (
-    <ViewShell header={<ViewHeader variant="panel" dashboardId={STOCKS_DASHBOARD_ID} title="Compare" subtitle="Normalized % performance, up to 4 symbols" />}>
+    <ViewShell
+      header={
+        <ViewHeader variant="panel" icon={TrendingUp} iconGradient={STOCKS_GRADIENT} title="Compare" subtitle="Normalized % performance, up to 4 symbols" />
+      }
+    >
       <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
           {symbols.map((symbol, i) => (
@@ -122,26 +123,21 @@ export default function StocksCompareView({ params, panel }: ViewProps<ComparePa
               }}
               className="flex items-center gap-1"
             >
-              <input
+              <TextField
                 value={draft}
-                onChange={event => setDraft(event.target.value.toUpperCase())}
+                onChange={value => setDraft(value.toUpperCase())}
                 placeholder="Add symbol…"
                 aria-label="Add symbol to compare"
-                className="w-28 px-2 py-1 bg-secondary border border-primary rounded-lg text-xs text-primary placeholder:text-muted focus:border-accent outline-none"
+                className="w-28"
               />
               <button type="submit" className="p-1.5 text-muted hover:text-primary cursor-pointer focus-ring rounded" aria-label="Add symbol">
                 <Plus className="w-3.5 h-3.5" />
               </button>
             </form>
           )}
-          <button
-            type="button"
-            onClick={seedFromWatchlist}
-            disabled={symbols.length >= MAX_COMPARE}
-            className="px-2 py-1 text-[11px] text-muted hover:text-primary border border-primary rounded-lg transition-colors cursor-pointer focus-ring disabled:opacity-40"
-          >
+          <Button variant="secondary" onClick={seedFromWatchlist} disabled={symbols.length >= MAX_COMPARE}>
             Use watchlist
-          </button>
+          </Button>
         </div>
 
         {symbols.length === 0 ? (

@@ -2,12 +2,13 @@ import DataGrid from "@tokenring-ai/one-frontend/components/ui/DataGrid.tsx";
 import ViewHeader from "@tokenring-ai/one-frontend/components/ui/ViewHeader.tsx";
 import ViewShell from "@tokenring-ai/one-frontend/components/ui/ViewShell.tsx";
 import { useStockLeaders } from "@tokenring-ai/one-frontend/rpc.ts";
+import { Button, TextField } from "@tokenring-ai/one-frontend/ui";
 import { TrendingDown, TrendingUp, Zap } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useClientSort } from "../features/stocks/clientSort.ts";
 import { fmt, fmtPrice, fmtVol } from "../features/stocks/formatters.ts";
-import { useStocksNavigation } from "../lib/stocksShared.ts";
-import { STOCKS_DASHBOARD_ID } from "../manifest.ts";
+import { STOCKS_GRADIENT } from "../ids.ts";
+import { useStocksLayoutNavigation } from "../lib/useStocksLayoutNavigation.ts";
 
 const LIST_TABS = [
   { key: "PERCENTGAINERS", label: "Gainers", icon: <TrendingUp className="w-3 h-3" /> },
@@ -34,8 +35,8 @@ const MAX_COMPARE = 4;
  * (security type, price range) — rows open the symbol, a selection of up to
  * four seeds the Compare view.
  */
-export default function StocksScreenerView() {
-  const { openSymbol, openCompare, onDashboard } = useStocksNavigation();
+export default function StocksScreenerPane() {
+  const { openSymbol, openCompare } = useStocksLayoutNavigation();
   const [list, setList] = useState<ListKey>("PERCENTGAINERS");
   const [securityType, setSecurityType] = useState<SecurityType | null>(null);
   const [minPrice, setMinPrice] = useState("");
@@ -91,7 +92,13 @@ export default function StocksScreenerView() {
     <ViewShell
       scroll={false}
       header={
-        <ViewHeader variant="panel" dashboardId={STOCKS_DASHBOARD_ID} title="Screener" subtitle="Market movers by board, security type and price range" />
+        <ViewHeader
+          variant="panel"
+          icon={TrendingUp}
+          iconGradient={STOCKS_GRADIENT}
+          title="Screener"
+          subtitle="Market movers by board, security type and price range"
+        />
       }
     >
       <div className="h-full min-h-0 flex flex-col gap-3">
@@ -127,39 +134,19 @@ export default function StocksScreenerView() {
           </div>
           <label className="flex items-center gap-1 text-[11px] text-muted">
             Min $
-            <input
-              type="number"
-              min={0}
-              value={minPrice}
-              onChange={event => setMinPrice(event.target.value)}
-              className="w-20 px-2 py-0.5 bg-secondary border border-primary rounded-md text-xs text-primary focus:border-accent outline-none"
-              aria-label="Minimum price"
-            />
+            <TextField type="number" min={0} value={minPrice} onChange={setMinPrice} className="w-20" aria-label="Minimum price" />
           </label>
           <label className="flex items-center gap-1 text-[11px] text-muted">
             Max $
-            <input
-              type="number"
-              min={0}
-              value={maxPrice}
-              onChange={event => setMaxPrice(event.target.value)}
-              className="w-20 px-2 py-0.5 bg-secondary border border-primary rounded-md text-xs text-primary focus:border-accent outline-none"
-              aria-label="Maximum price"
-            />
+            <TextField type="number" min={0} value={maxPrice} onChange={setMaxPrice} className="w-20" aria-label="Maximum price" />
           </label>
           <div className="ml-auto flex items-center gap-2">
             <span className="text-[11px] text-muted">
               {selected.size}/{MAX_COMPARE} for compare
             </span>
-            <button
-              type="button"
-              disabled={selected.size < 2 || !onDashboard}
-              onClick={openComparison}
-              className="px-2.5 py-1 text-[11px] font-medium rounded-md bg-accent text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer focus-ring"
-              title={onDashboard ? "Compare the selected symbols" : "Available on the Stocks dashboard"}
-            >
+            <Button disabled={selected.size < 2} onClick={openComparison} title="Compare the selected symbols">
               Compare selected
-            </button>
+            </Button>
           </div>
         </div>
 

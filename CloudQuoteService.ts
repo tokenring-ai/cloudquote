@@ -1,12 +1,12 @@
 import type TokenRingApp from "@tokenring-ai/app";
 import type { TokenRingService } from "@tokenring-ai/app/types";
+import { NewsRPMService } from "@tokenring-ai/newsrpm";
 import formatError from "@tokenring-ai/utility/error/formatError";
 import { type FetchJSONOpts, HTTPError, HTTPRetriever } from "@tokenring-ai/utility/http/HTTPRetriever";
 import type { z } from "zod";
 import {
   CloudQuoteFindStockResponseSchema,
   type CloudQuoteHeadlinesBySecurityParams,
-  CloudQuoteHeadlinesResponseSchema,
   CloudQuoteLeadersResponseSchema,
   CloudQuotePriceHistoryResponseSchema,
   CloudQuotePriceTicksResponseSchema,
@@ -60,17 +60,13 @@ export default class CloudQuoteService implements TokenRingService {
     });
   }
 
+  /**
+   * Ticker headlines live in NewsRPM's NormalizedTicker index. Call that search
+   * rather than posting `{symbols, count}` at the NewsRPM origin.
+   */
   async getHeadlinesBySecurity(params: CloudQuoteHeadlinesBySecurityParams) {
     try {
-      return await this.retriever.fetchValidatedJson({
-        url: "https://api.newsrpm.com",
-        opts: {
-          method: "POST",
-          body: JSON.stringify(params),
-        },
-        context: "CloudQuote headlines by security",
-        schema: CloudQuoteHeadlinesResponseSchema,
-      });
+      return await this.app.requireService(NewsRPMService).searchIndexedData(indexedSearchForHeadlines(params));
     } catch (err) {
       this.app.serviceError(this, "CloudQuote headlines by security failed", err);
       if (err instanceof CloudQuoteError) throw err;
@@ -150,4 +146,29 @@ export default class CloudQuoteService implements TokenRingService {
       throw new CloudQuoteError(err, `Failed request to ${path}, ${formatError(err)}`);
     }
   }
+}
+
+/** Map a headlines query onto the indexed-data search the rest of the app uses. */
+function indexedSearchForHeadlines(params: CloudQuoteHeadlinesBySecurityParams) {
+  const symbols = params.symbols
+    .split(",")
+    .map(symbol => symbol.trim().toUpperCase())
+    .filter(symbol => symbol.length > 0);
+  const minDate = parseOptionalTime(params.minDate);
+  const maxDate = parseOptionalTime(params.maxDate);
+  return {
+    key: "NormalizedTicker",
+    ...(symbols.length > 1 ? { value: symbols } : symbols[0] ? { value: symbols[0] } : {}),
+    ...(params.count !== undefined ? { count: params.count } : {}),
+    ...(params.start !== undefined ? { offset: params.start } : {}),
+    ...(minDate !== undefined ? { minDate } : {}),
+    ...(maxDate !== undefined ? { maxDate } : {}),
+    order: "date" as const,
+  };
+}
+
+function parseOptionalTime(raw: string | undefined): number | undefined {
+  if (!raw) return undefined;
+  const parsed = Date.parse(raw);
+  return Number.isNaN(parsed) ? undefined : parsed;
 }

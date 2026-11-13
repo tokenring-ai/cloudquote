@@ -12,7 +12,6 @@ async function execute({ symbols, start, count, minDate, maxDate }: z.output<typ
   if (!symbols) {
     throw new ToolCallError(name, "symbols is required");
   }
-  // Note: This calls the service method which uses NewsRPM API (http://api.newsrpm.com)
   const result = await cloudQuoteService.getHeadlinesBySecurity({
     symbols,
     start,

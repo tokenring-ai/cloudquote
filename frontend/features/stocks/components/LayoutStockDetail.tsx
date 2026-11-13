@@ -7,10 +7,10 @@ import { useMemo, useState } from "react";
 import { fmt, fmtPrice, fmtTs } from "../formatters.ts";
 import { useWatchlist } from "../watchlist.ts";
 import AskAIModal from "./AskAIModal.tsx";
+import LayoutPriceChartCard from "./LayoutPriceChartCard.tsx";
 import OverviewTab from "./OverviewTab.tsx";
-import PriceChartCard from "./PriceChartCard.tsx";
 
-interface StockDetailProps {
+interface LayoutStockDetailProps {
   symbol: string;
   onClear: () => void;
   /** Opens one of the per-symbol tool views (chart, news, history) in the main area. */
@@ -26,7 +26,7 @@ interface StockDetailProps {
  * news and history live in their own dock views — the header buttons open them
  * beside this panel.
  */
-export default function StockDetail({ symbol, onClear, onOpenTool, chartViewId, newsViewId, historyViewId }: StockDetailProps) {
+export default function LayoutStockDetail({ symbol, onClear, onOpenTool, chartViewId, newsViewId, historyViewId }: LayoutStockDetailProps) {
   const [showAskAI, setShowAskAI] = useState(false);
   const watchlist = useWatchlist();
 
@@ -149,7 +149,7 @@ export default function StockDetail({ symbol, onClear, onOpenTool, chartViewId, 
         </div>
       </div>
 
-      <PriceChartCard symbol={symbol} height={280} />
+      <LayoutPriceChartCard symbol={symbol} height={280} />
 
       <OverviewTab quote={quoteRow} quoteLoading={quotes.isLoading} quoteError={quotes.error} onRetry={() => void quotes.mutate()} />
 

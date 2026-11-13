@@ -1,12 +1,15 @@
+import { useRouteParamsFor } from "@tokenring-ai/one-frontend/apps/panelHooks.ts";
 import ViewHeader from "@tokenring-ai/one-frontend/components/ui/ViewHeader.tsx";
 import ViewShell from "@tokenring-ai/one-frontend/components/ui/ViewShell.tsx";
-import type { ViewProps } from "@tokenring-ai/one-frontend/dock/types.ts";
-import { useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import StockDetail from "../features/stocks/components/StockDetail.tsx";
+import type { ViewProps } from "@tokenring-ai/one-frontend/layout/define.ts";
+import { usePanel } from "@tokenring-ai/one-frontend/layout/hooks.ts";
+import { TrendingUp } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import LayoutStockDetail from "../features/stocks/components/LayoutStockDetail.tsx";
 import SymbolSearchBox from "../features/stocks/components/SymbolSearchBox.tsx";
-import { type StocksViewParams, stocksPath, useStocksNavigation } from "../lib/stocksShared.ts";
-import { STOCKS_CHART_VIEW, STOCKS_DASHBOARD_ID, STOCKS_HISTORY_VIEW, STOCKS_NEWS_VIEW } from "../manifest.ts";
+import { STOCKS_CHART_VIEW_ID, STOCKS_GRADIENT, STOCKS_HISTORY_VIEW_ID, STOCKS_MARKET_VIEW_ID, STOCKS_NEWS_VIEW_ID } from "../ids.ts";
+import { normalizeSymbol } from "../lib/symbols.ts";
+import { useStocksLayoutNavigation } from "../lib/useStocksLayoutNavigation.ts";
 
 const QUICK_SYMBOLS = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "TSLA", "META", "SPY"];
 
@@ -16,12 +19,21 @@ const QUICK_SYMBOLS = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "TSLA", "META", 
  * is the picker, which becomes the symbol it opens. Chart, news and history
  * open as separate panels beside this one.
  */
-export default function StocksMarketView({ params, panel }: ViewProps<StocksViewParams>) {
-  const navigate = useNavigate();
-  const { openSymbol, openTool, onDashboard } = useStocksNavigation();
+export default function StocksMarketPane({ params }: ViewProps) {
+  const { openSymbol, openTool, clearSymbol } = useStocksLayoutNavigation();
+  const panel = usePanel();
+  const routeMarket = useRouteParamsFor(STOCKS_MARKET_VIEW_ID);
   const [inputValue, setInputValue] = useState("");
 
-  const activeSymbol = params.symbol ?? null;
+  // `/stocks/aapl` and a click on AAPL land on the same panel.
+  const activeSymbol = params.symbol ? normalizeSymbol(params.symbol) : null;
+
+  // The picker has done its job once the URL shows a symbol's market panel.
+  const closePicker = useCallback(() => panel.close(), [panel]);
+  const routeSymbol = routeMarket?.symbol;
+  useEffect(() => {
+    if (!activeSymbol && routeSymbol) closePicker();
+  }, [activeSymbol, routeSymbol, closePicker]);
 
   const handleSymbolSelect = useCallback(
     (sym: string) => {
@@ -32,14 +44,17 @@ export default function StocksMarketView({ params, panel }: ViewProps<StocksView
     [openSymbol],
   );
 
-  // Back to the picker: the panel reverts in place on the Stocks dashboard and the URL drops the symbol.
+  // Back to the picker: this panel closes and the URL drops the symbol.
   const handleClear = useCallback(() => {
-    if (onDashboard) panel.updateParams({ symbol: undefined });
-    void navigate(stocksPath(null));
-  }, [navigate, onDashboard, panel]);
+    if (activeSymbol) clearSymbol(activeSymbol);
+  }, [activeSymbol, clearSymbol]);
 
   return (
-    <ViewShell header={<ViewHeader dashboardId={STOCKS_DASHBOARD_ID} title="Market" subtitle="Live quotes, charts, and key stats" />} pad="page" width="wide">
+    <ViewShell
+      header={<ViewHeader icon={TrendingUp} iconGradient={STOCKS_GRADIENT} title="Market" subtitle="Live quotes, charts, and key stats" />}
+      pad="page"
+      width="wide"
+    >
       <div className="space-y-6">
         <div>
           <div className="flex gap-2">
@@ -65,14 +80,14 @@ export default function StocksMarketView({ params, panel }: ViewProps<StocksView
         </div>
 
         {activeSymbol ? (
-          <StockDetail
+          <LayoutStockDetail
             key={activeSymbol}
             symbol={activeSymbol}
             onClear={handleClear}
             onOpenTool={openTool}
-            chartViewId={STOCKS_CHART_VIEW}
-            newsViewId={STOCKS_NEWS_VIEW}
-            historyViewId={STOCKS_HISTORY_VIEW}
+            chartViewId={STOCKS_CHART_VIEW_ID}
+            newsViewId={STOCKS_NEWS_VIEW_ID}
+            historyViewId={STOCKS_HISTORY_VIEW_ID}
           />
         ) : (
           <div className="px-4 py-8 bg-secondary/50 border border-dashed border-primary rounded-2xl text-center">

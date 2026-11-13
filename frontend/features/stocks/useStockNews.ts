@@ -39,33 +39,19 @@ function normalizeItem(item: StockNewsItem | Record<string, unknown>): StockNews
 }
 
 /**
- * News for one symbol: NewsRPM ticker-tagged search (by SymbolID, then by
- * normalized ticker), falling back to CloudQuote's headlines endpoint only
- * when both come back empty.
+ * News for one symbol. NewsRPM tags tickers under NormalizedTicker — a CloudQuote
+ * SymbolID is not an index key, and a failed lookup must not skip the ticker query.
+ * When that search is empty, fall back to CloudQuote getHeadlinesBySecurity.
  */
-export function useStockNews(
-  symbol: string,
-  symbolId?: string,
-): {
+export function useStockNews(symbol: string): {
   articles: StockNewsArticle[];
   isLoading: boolean;
   error?: unknown;
 } {
-  const upper = symbol.toUpperCase();
-
-  const byId = useNewsRPMIndexedDataSearchResults(
-    symbolId
-      ? {
-          key: "symbolID",
-          value: symbolId,
-          count: 30,
-          order: "date",
-        }
-      : undefined,
-  );
+  const upper = symbol.trim().toUpperCase();
 
   const byTicker = useNewsRPMIndexedDataSearchResults(
-    !symbolId || (byId.data && !byId.data.rows.length)
+    upper
       ? {
           key: "NormalizedTicker",
           value: upper,
@@ -75,14 +61,13 @@ export function useStockNews(
       : undefined,
   );
 
-  const primaryPending = Boolean(symbolId && byId.isLoading) || byTicker.isLoading;
-  const primaryEmpty = !byId.data?.rows.length && !byTicker.data?.rows.length;
-  const headlines = useStockHeadlines(!primaryPending && primaryEmpty ? upper : undefined, 25);
+  const tickerPending = Boolean(upper) && byTicker.isLoading;
+  const tickerEmpty = !byTicker.data?.rows.length;
+  const headlines = useStockHeadlines(!tickerPending && tickerEmpty && upper ? upper : undefined, 25);
 
   return useMemo(() => {
     let rows: StockNewsItem[] = [];
-    if (byId.data?.rows.length) rows = byId.data.rows as StockNewsItem[];
-    else if (byTicker.data?.rows.length) rows = byTicker.data.rows as StockNewsItem[];
+    if (byTicker.data?.rows.length) rows = byTicker.data.rows as StockNewsItem[];
     else {
       const raw: unknown = headlines.data?.data;
       if (Array.isArray(raw)) rows = raw as StockNewsItem[];
@@ -90,10 +75,11 @@ export function useStockNews(
         rows = (raw as { rows: StockNewsItem[] }).rows;
       }
     }
+    const articles = rows.map(normalizeItem);
     return {
-      articles: rows.map(normalizeItem),
-      isLoading: byId.isLoading || byTicker.isLoading || headlines.isLoading,
-      error: byId.error || byTicker.error || headlines.error,
+      articles,
+      isLoading: byTicker.isLoading || headlines.isLoading,
+      error: articles.length ? undefined : byTicker.error || headlines.error,
     };
-  }, [byId.data, byId.isLoading, byId.error, byTicker.data, byTicker.isLoading, byTicker.error, headlines.data, headlines.isLoading, headlines.error]);
+  }, [byTicker.data, byTicker.isLoading, byTicker.error, headlines.data, headlines.isLoading, headlines.error]);
 }

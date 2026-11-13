@@ -3,15 +3,14 @@ import DateRangePicker, { type DateRange } from "@tokenring-ai/one-frontend/comp
 import EmptyState from "@tokenring-ai/one-frontend/components/ui/EmptyState.tsx";
 import ViewHeader from "@tokenring-ai/one-frontend/components/ui/ViewHeader.tsx";
 import ViewShell from "@tokenring-ai/one-frontend/components/ui/ViewShell.tsx";
-import type { ViewProps } from "@tokenring-ai/one-frontend/dock/types.ts";
+import type { ViewProps } from "@tokenring-ai/one-frontend/layout/define.ts";
 import { useStockPriceHistory } from "@tokenring-ai/one-frontend/rpc.ts";
-import { Download, History } from "lucide-react";
+import { Download, History, TrendingUp } from "lucide-react";
 import { useMemo, useState } from "react";
 import { downloadCsv, historyToCsv } from "../features/stocks/charts/toCsv.ts";
 import { useClientSort } from "../features/stocks/clientSort.ts";
 import { bufferedHistoryRange, changeSign, fmt, fmtHistoryDate, fmtVol, isoDateOffset } from "../features/stocks/formatters.ts";
-import type { SymbolParams } from "../lib/stocksShared.ts";
-import { STOCKS_DASHBOARD_ID } from "../manifest.ts";
+import { STOCKS_GRADIENT } from "../ids.ts";
 
 interface HistoryRow extends Record<string, unknown> {
   date: string;
@@ -40,7 +39,8 @@ const COLUMNS = [
  * has always returned but no view showed, with sorting, date-range presets and
  * CSV export.
  */
-export default function StocksHistoryView({ params }: ViewProps<SymbolParams>) {
+export default function StocksHistoryPane({ params }: ViewProps) {
+  const symbol = params.symbol ?? "";
   const [range, setRange] = useState<DateRange>(() => ({
     from: isoDateOffset(-90),
     to: isoDateOffset(0),
@@ -49,7 +49,7 @@ export default function StocksHistoryView({ params }: ViewProps<SymbolParams>) {
   const [fetchParams, setFetchParams] = useState(
     () => bufferedHistoryRange(isoDateOffset(-90), isoDateOffset(0)) ?? { from: isoDateOffset(-91), to: isoDateOffset(1) },
   );
-  const history = useStockPriceHistory(params.symbol, fetchParams.from, fetchParams.to);
+  const history = useStockPriceHistory(symbol || undefined, fetchParams.from, fetchParams.to);
 
   const applyRange = (next: DateRange) => {
     setRange(next);
@@ -77,7 +77,7 @@ export default function StocksHistoryView({ params }: ViewProps<SymbolParams>) {
 
   const { sorted, orderBy, onSort } = useClientSort(rows, { column: "date", direction: "desc" });
 
-  const exportCsv = () => downloadCsv(`${params.symbol.toLowerCase()}-history.csv`, historyToCsv(history.data?.rows ?? []));
+  const exportCsv = () => downloadCsv(`${symbol.toLowerCase()}-history.csv`, historyToCsv(history.data?.rows ?? []));
 
   return (
     <ViewShell
@@ -85,8 +85,9 @@ export default function StocksHistoryView({ params }: ViewProps<SymbolParams>) {
       header={
         <ViewHeader
           variant="panel"
-          dashboardId={STOCKS_DASHBOARD_ID}
-          title={`History · ${params.symbol}`}
+          icon={TrendingUp}
+          iconGradient={STOCKS_GRADIENT}
+          title={`History · ${symbol}`}
           actions={[
             {
               key: "csv",

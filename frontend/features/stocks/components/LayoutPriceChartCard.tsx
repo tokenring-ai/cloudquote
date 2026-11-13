@@ -1,7 +1,7 @@
 import ErrorState from "@tokenring-ai/one-frontend/components/ui/ErrorState.tsx";
 import { useStockPriceHistory, useStockPriceTicks } from "@tokenring-ai/one-frontend/rpc.ts";
 import { memo, useMemo, useState } from "react";
-import { useStocksNavigation } from "../../../lib/stocksShared.ts";
+import { useStocksLayoutNavigation } from "../../../lib/useStocksLayoutNavigation.ts";
 import type { CandlePoint, LinePoint, VolumePoint } from "../charts/chartData.ts";
 import { historyToCandles, historyToLine, historyToVolume, ticksToBucketedCandles, ticksToLine, ticksToVolumeBars } from "../charts/chartData.ts";
 import { type OverlaySeries, sma } from "../charts/indicators.ts";
@@ -9,7 +9,7 @@ import PriceChart, { type ChartType } from "../charts/PriceChart.tsx";
 import { fmtPrice } from "../formatters.ts";
 import { DEFAULT_INTERVAL, INTERVALS, intervalByKey, intervalHistoryRange } from "../intervals.ts";
 
-export interface PriceChartCardProps {
+export interface LayoutPriceChartCardProps {
   symbol: string;
   /** Chart height in px. */
   height?: number;
@@ -39,7 +39,7 @@ const chip = (active: boolean) =>
  * overlays. Owns its interval/type state and the tick/history data fetching —
  * the shared chart block of the Market and Chart views.
  */
-const PriceChartCard = memo(function PriceChartCard({
+const LayoutPriceChartCard = memo(function LayoutPriceChartCard({
   symbol,
   height = 300,
   defaultType = "area",
@@ -47,8 +47,8 @@ const PriceChartCard = memo(function PriceChartCard({
   showTypeToggle = true,
   showLogToggle = true,
   showIntervalPicker = true,
-}: PriceChartCardProps) {
-  const { openSymbol } = useStocksNavigation();
+}: LayoutPriceChartCardProps) {
+  const { openSymbol } = useStocksLayoutNavigation();
   const [intervalKey, setIntervalKey] = useState(defaultInterval);
   const [type, setType] = useState<ChartType>(defaultType);
   const [logScale, setLogScale] = useState(false);
@@ -180,7 +180,7 @@ const PriceChartCard = memo(function PriceChartCard({
   );
 });
 
-export default PriceChartCard;
+export default LayoutPriceChartCard;
 
 function LastCloseNote({ candles, line }: { candles: CandlePoint[]; line: LinePoint[] }) {
   const last = candles[candles.length - 1] ?? line[line.length - 1];

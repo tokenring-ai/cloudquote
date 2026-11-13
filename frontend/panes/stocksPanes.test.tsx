@@ -1,11 +1,10 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
-import { renderHook, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { DashboardApiProvider } from "@tokenring-ai/one-frontend/dock/DashboardApiContext.tsx";
-import type { ViewDefinition, ViewParams } from "@tokenring-ai/one-frontend/dock/types.ts";
-import { createFakeDashboardApi, createFakePanelHandle, type FakeDashboardApi, renderView } from "@tokenring-ai/one-frontend/test/dock.tsx";
-import { type ReactNode, useEffect, useState } from "react";
-import { MemoryRouter } from "react-router-dom";
+import { createLayoutRegistry } from "@tokenring-ai/one-frontend/layout/registry.ts";
+import type { ViewParams } from "@tokenring-ai/one-frontend/layout/types.ts";
+import { renderLayoutApp, renderLayoutView } from "@tokenring-ai/one-frontend/test/layout.tsx";
+import { useEffect, useState } from "react";
 import { mockLightweightCharts } from "../features/stocks/charts/testLightweightCharts.ts";
 
 mockLightweightCharts();
@@ -109,19 +108,28 @@ void mock.module("@tokenring-ai/one-frontend/hooks/useLiveStreamStatus.ts", () =
   useLiveStreamStatusFromSWR: () => ({ status: "live", isStale: false, showSpinner: false, isValidating: false, error: undefined }),
 }));
 
-const { default: contribution } = await import("../app.tsx");
-const { stocksPath, useStocksNavigation } = await import("../lib/stocksShared.ts");
+const { default: layout, STOCKS_APP } = await import("../layout.ts").then(module => ({ default: module.default, STOCKS_APP: module.STOCKS_APP }));
+const { default: stocksViews } = await import("../views.tsx");
 
-const getView = (id: string) => contribution.views.find(view => view.id === id) as ViewDefinition<any>;
+const registry = createLayoutRegistry({
+  apps: layout.apps,
+  views: stocksViews.views,
+  kinds: [{ id: "navigator", label: "Navigators", plural: "navigators" }, ...layout.kinds],
+});
 
-function renderViewById(id: string, params: ViewParams = {}, api = fakeApi()) {
-  const view = getView(id);
-  const panel = createFakePanelHandle({ viewId: id, dashboardId: "stocks", panelId: `${id}:test`, params });
-  return renderView(view, params, { api, panel, path: stocksPath((params.symbol as string | null) ?? null), routes: ["/stocks/:symbol?"] });
+const getView = (id: string) => {
+  const view = stocksViews.views.find(candidate => candidate.id === id);
+  if (!view) throw new Error(`no view ${id}`);
+  return view;
+};
+
+/** Mounts one stocks view alone in a throwaway app (the market view would take the app root, so it is not added). */
+function renderViewById(id: string, params: ViewParams = {}) {
+  return renderLayoutView(getView(id), { params, kinds: layout.kinds });
 }
 
-function fakeApi(): FakeDashboardApi {
-  return createFakeDashboardApi({ dashboardId: "stocks", getView: id => getView(id) });
+function renderStocks(url: string) {
+  return renderLayoutApp({ registry, url });
 }
 
 beforeEach(() => {
@@ -142,6 +150,13 @@ beforeEach(() => {
   cloudquoteConfigured = true;
 });
 
+/** One market panel's content (the navigator rail has its own search box and prices). */
+function slot(key: string): HTMLElement {
+  const element = document.querySelector<HTMLElement>(`[data-slot="${key}"]`);
+  if (!element) throw new Error(`no panel ${key}`);
+  return element;
+}
+
 describe("StocksNavigatorView", () => {
   it("renders watchlist rows from the live stream and movers boards", async () => {
     renderViewById("stocks-navigator");
@@ -156,14 +171,13 @@ describe("StocksNavigatorView", () => {
 
   it("opens a mover's market panel and updates the URL", async () => {
     const user = userEvent.setup();
-    const api = fakeApi();
-    renderViewById("stocks-navigator", {}, api);
+    const app = renderStocks("/stocks");
 
     // data-testid sits on the row wrapper; the primary button carries the label.
     await user.click(await screen.findByRole("button", { name: "Open AMD" }));
 
-    expect(api.opened).toEqual([expect.objectContaining({ viewId: "stocks-market", params: { symbol: "AMD" } })]);
-    await waitFor(() => expect(screen.getByTestId("pathname").textContent).toBe("/stocks/AMD"));
+    await waitFor(() => expect(app.location().pathname).toBe("/stocks/AMD"));
+    expect(await screen.findByRole("tab", { name: /Market · AMD/ })).toBeInTheDocument();
   });
 });
 
@@ -194,16 +208,19 @@ describe("StocksNavigatorView load errors", () => {
 describe("StocksChartView", () => {
   it("switches symbol only when the typed ticker is submitted", async () => {
     const user = userEvent.setup();
-    const api = fakeApi();
-    renderViewById("stocks-chart", { symbol: "AAPL" }, api);
+    const app = renderStocks("/stocks/AAPL");
 
-    const input = await screen.findByLabelText("Switch symbol");
+    await screen.findByText("Apple Inc.");
+    await user.click(screen.getByRole("button", { name: /Chart/ }));
+    await screen.findByRole("tab", { name: /Chart · AAPL/ });
+    // The market panel (hidden behind the chart tab) has a switcher too.
+    const input = await within(slot("stocks-chart:AAPL")).findByLabelText("Switch symbol");
     await user.type(input, "msft");
-    expect(api.opened).toEqual([]);
+    expect(app.location().pathname).toBe("/stocks/AAPL");
     expect((input as HTMLInputElement).value).toBe("MSFT");
 
     await user.type(input, "{Enter}");
-    expect(api.opened).toEqual([expect.objectContaining({ viewId: "stocks-market", params: { symbol: "MSFT" } })]);
+    await waitFor(() => expect(app.location().pathname).toBe("/stocks/MSFT"));
     expect((input as HTMLInputElement).value).toBe("");
   });
 
@@ -211,7 +228,7 @@ describe("StocksChartView", () => {
     renderViewById("stocks-chart", { symbol: "AAPL" });
 
     expect(await screen.findByTestId("price-chart-card")).toBeInTheDocument();
-    expect(screen.getByText("Chart · AAPL")).toBeInTheDocument();
+    expect(screen.getAllByText("Chart · AAPL").length).toBeGreaterThan(0);
   });
 
   it("shows an empty state without a symbol", async () => {
@@ -225,8 +242,7 @@ describe("StocksHistoryView", () => {
   it("renders the OHLCV table with adjusted close and a CSV export", async () => {
     renderViewById("stocks-history", { symbol: "AAPL" });
 
-    expect(await screen.findByText("History · AAPL")).toBeInTheDocument();
-    expect(screen.getByTestId("stocks-history-table")).toBeInTheDocument();
+    expect(await screen.findByTestId("stocks-history-table")).toBeInTheDocument();
     expect(screen.getAllByText("Adj Close").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "CSV" })).toBeInTheDocument();
   });
@@ -311,8 +327,7 @@ describe("StocksScreenerView", () => {
   it("renders the movers table with filters and a disabled compare button", async () => {
     renderViewById("stocks-screener");
 
-    expect(await screen.findByText("Screener")).toBeInTheDocument();
-    expect(screen.getByTestId("stocks-screener-table")).toBeInTheDocument();
+    expect(await screen.findByTestId("stocks-screener-table")).toBeInTheDocument();
     const compare = screen.getByRole("button", { name: "Compare selected" });
     expect(compare).toBeDisabled();
   });
@@ -341,7 +356,7 @@ describe("StocksScreenerView", () => {
 
 describe("StocksCompareView", () => {
   it("compares the seeded symbols with a returns table", async () => {
-    renderViewById("stocks-compare", { symbols: ["AAPL", "MSFT"] });
+    renderViewById("stocks-compare", { symbols: "AAPL,MSFT" });
 
     expect(await screen.findByTestId("stocks-compare-chart")).toBeInTheDocument();
     const table = screen.getByTestId("stocks-compare-returns");
@@ -362,53 +377,150 @@ describe("StocksCompareView", () => {
 });
 
 describe("StocksCompareView editing", () => {
-  it("adds symbols to a seeded comparison and writes the list back to the panel", async () => {
+  it("adds symbols to a seeded comparison and writes the list back to the URL", async () => {
     const user = userEvent.setup();
-    const { panel } = renderViewById("stocks-compare", { symbols: ["aapl", "MSFT"] });
+    const app = renderViewById("stocks-compare", { symbols: "aapl,MSFT" });
 
     expect(await screen.findByRole("button", { name: "Remove AAPL" })).toBeInTheDocument();
     await user.type(screen.getByLabelText("Add symbol to compare"), "nvda{Enter}");
 
     expect(await screen.findByRole("button", { name: "Remove NVDA" })).toBeInTheDocument();
-    expect(panel.params.symbols).toEqual(["AAPL", "MSFT", "NVDA"]);
+    await waitFor(() => expect(decodeURIComponent(app.location().pathname)).toBe("/test/compare/AAPL,MSFT,NVDA"));
 
     // Seeded symbols are as removable as added ones.
     await user.click(screen.getByRole("button", { name: "Remove AAPL" }));
     expect(screen.queryByRole("button", { name: "Remove AAPL" })).toBeNull();
-    expect(panel.params.symbols).toEqual(["MSFT", "NVDA"]);
+    await waitFor(() => expect(decodeURIComponent(app.location().pathname)).toBe("/test/compare/MSFT,NVDA"));
   });
 
   it("adds symbols to an empty comparison", async () => {
     const user = userEvent.setup();
-    const { panel } = renderViewById("stocks-compare", {});
+    const app = renderViewById("stocks-compare", {});
 
     await user.type(await screen.findByLabelText("Add symbol to compare"), "AMD{Enter}");
     expect(await screen.findByRole("button", { name: "Remove AMD" })).toBeInTheDocument();
-    expect(panel.params.symbols).toEqual(["AMD"]);
+    await waitFor(() => expect(app.location().pathname).toBe("/test/compare/AMD"));
   });
 });
 
-describe("useStocksNavigation.openCompare", () => {
-  function renderNavigation(api: FakeDashboardApi) {
-    const wrapper = ({ children }: { children: ReactNode }) => (
-      <MemoryRouter>
-        <DashboardApiProvider value={api}>{children}</DashboardApiProvider>
-      </MemoryRouter>
-    );
-    return renderHook(() => useStocksNavigation(), { wrapper });
-  }
+describe("StocksMarketPane", () => {
+  const QUOTE_TEXT = "Apple Inc.";
 
-  it("replaces the open compare panel's symbols instead of only focusing it", () => {
-    const api = fakeApi();
-    const { result } = renderNavigation(api);
+  it("renders the picker when opened without a symbol", async () => {
+    renderStocks("/stocks");
 
-    result.current.openCompare(["AMD", "NVDA"]);
-    expect(api.panels.filter(panel => panel.viewId === "stocks-compare")).toHaveLength(1);
+    expect(await screen.findByText("Search a symbol or pick a quick ticker above")).toBeInTheDocument();
+    const picker = within(slot("stocks-market:new"));
+    expect(picker.getByPlaceholderText(/Search by symbol or company name/)).toBeInTheDocument();
+    expect(picker.getByRole("button", { name: "AAPL" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Ask AI" })).not.toBeInTheDocument();
+  });
 
-    result.current.openCompare(["aapl", "MSFT", "TSLA"]);
-    const compare = api.panels.filter(panel => panel.viewId === "stocks-compare");
-    expect(compare).toHaveLength(1);
-    expect(compare[0]!.params).toEqual({ symbols: ["AAPL", "MSFT", "TSLA"] });
-    expect(api.opened).toHaveLength(1);
+  it("shows the live quote for the symbol named by the URL, upper-casing it", async () => {
+    renderStocks("/stocks/aapl");
+
+    expect(await screen.findByText(QUOTE_TEXT)).toBeInTheDocument();
+    expect(within(slot("stocks-market:AAPL")).getByText("$150.00")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ask AI" })).toBeInTheDocument();
+    expect(screen.getByTestId("price-chart-card")).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Market · AAPL/ })).toBeInTheDocument();
+    // The picker was filled by the symbol: one market panel only.
+    await waitFor(() => expect(screen.queryByRole("tab", { name: /^Market$/ })).not.toBeInTheDocument());
+  });
+
+  it("opens the chart, news and history views through the header tool buttons", async () => {
+    const user = userEvent.setup();
+    renderStocks("/stocks/AAPL");
+
+    await screen.findByText(QUOTE_TEXT);
+    await user.click(screen.getByRole("button", { name: /Chart/ }));
+
+    expect(await screen.findByRole("tab", { name: /Chart · AAPL/ })).toBeInTheDocument();
+  });
+
+  it("fills the picker instead of leaving a second market tab when a quick ticker is chosen", async () => {
+    const user = userEvent.setup();
+    const app = renderStocks("/stocks");
+
+    await screen.findByText("Search a symbol or pick a quick ticker above");
+    await user.click(within(slot("stocks-market:new")).getByRole("button", { name: "MSFT" }));
+
+    await waitFor(() => expect(app.location().pathname).toBe("/stocks/MSFT"));
+    expect(await screen.findByRole("tab", { name: /Market · MSFT/ })).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole("tab", { name: /^Market$/ })).not.toBeInTheDocument());
+  });
+
+  it("jumps straight to a typed ticker on Enter even without search results", async () => {
+    const user = userEvent.setup();
+    const app = renderStocks("/stocks");
+
+    await screen.findByText("Search a symbol or pick a quick ticker above");
+    const input = within(slot("stocks-market:new")).getByPlaceholderText(/Search by symbol or company name/);
+    await user.type(input, "qqq{Enter}");
+
+    await waitFor(() => expect(app.location().pathname).toBe("/stocks/QQQ"));
+  });
+
+  it("returns to the picker from the detail's close button", async () => {
+    const user = userEvent.setup();
+    const app = renderStocks("/stocks/AAPL");
+
+    await user.click(await screen.findByRole("button", { name: "Close" }));
+
+    await waitFor(() => expect(app.location().pathname).toBe("/stocks"));
+    expect(await screen.findByText("Search a symbol or pick a quick ticker above")).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: /Market · AAPL/ })).not.toBeInTheDocument();
+  });
+});
+
+describe("Stocks app definition", () => {
+  it("keeps every old URL shape", () => {
+    expect(registry.routes.resolve("/stocks")).toMatchObject({ app: "stocks", viewId: "stocks-market" });
+    expect(registry.routes.resolve("/stocks/aapl")).toMatchObject({ viewId: "stocks-market", params: { symbol: "aapl" } });
+    // Static segments win over the symbol route.
+    expect(registry.routes.resolve("/stocks/compare/AAPL,MSFT")).toMatchObject({ viewId: "stocks-compare" });
+    expect(registry.routes.urlFor("stocks", "stocks-market", { symbol: "BRK/B" })).toBe("/stocks/BRK%2FB");
+    expect(registry.routes.urlFor("stocks", "stocks-market", {})).toBe("/stocks");
+  });
+
+  it("registers a navigator rail, per-symbol views and a screener/compare pair", () => {
+    expect(STOCKS_APP.views).toEqual([
+      "stocks-navigator",
+      "stocks-market",
+      "stocks-chart",
+      "stocks-news",
+      "stocks-history",
+      "stocks-screener",
+      "stocks-compare",
+    ]);
+    for (const id of STOCKS_APP.views) expect(getView(id)).toBeDefined();
+  });
+
+  it("derives instance keys and tab titles from the symbol", () => {
+    const market = getView("stocks-market");
+    expect(market.instanceKey?.({ symbol: "aapl" })).toBe("AAPL");
+    expect(market.instanceKey?.({})).toBe("new");
+    const title = market.title as (params: ViewParams) => string;
+    expect(title({ symbol: "AAPL" })).toBe("Market · AAPL");
+    expect(title({})).toBe("Market");
+  });
+
+  it("lays the app out as a navigator rail beside the market workspace", () => {
+    const template = STOCKS_APP.layout as unknown as { split: string; children: { items?: string[] }[] };
+    expect(template.split).toBe("row");
+    expect(template.children.map(child => child.items)).toEqual([["stocks-navigator"], ["stocks-market"]]);
+  });
+
+  it("re-seeds the single compare panel from the screener's selection", async () => {
+    const user = userEvent.setup();
+    const app = renderStocks("/stocks/compare/AMD,NVDA");
+
+    expect(await screen.findByRole("button", { name: "Remove AMD" })).toBeInTheDocument();
+    app.go("/stocks/compare/AAPL,MSFT,TSLA");
+    expect(await screen.findByRole("button", { name: "Remove TSLA" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Remove AMD" })).toBeNull();
+    expect(screen.getAllByRole("tab", { name: /Compare/ })).toHaveLength(1);
+    await user.click(screen.getByRole("button", { name: "Remove TSLA" }));
+    await waitFor(() => expect(decodeURIComponent(app.location().pathname)).toBe("/stocks/compare/AAPL,MSFT"));
   });
 });
