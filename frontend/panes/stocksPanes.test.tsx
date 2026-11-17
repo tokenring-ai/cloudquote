@@ -24,7 +24,7 @@ const mutateNoop = mock(async () => undefined);
 const swrShape = (data: unknown) => ({ data, isLoading: false, error: undefined, mutate: mutateNoop });
 
 /** A useTypedSWR that actually runs its fetcher, so reader-style queries resolve. */
-function fakeUseTypedSWR(key: unknown, fetcher?: () => Promise<unknown>) {
+function useFakeTypedSWR(key: unknown, fetcher?: () => Promise<unknown>) {
   const [state, setState] = useState<{ data: unknown; isLoading: boolean; error?: unknown }>({
     data: undefined,
     isLoading: Boolean(key && fetcher),
@@ -85,7 +85,7 @@ void mock.module("@tokenring-ai/one-frontend/rpc.ts", () => ({
   useFindStock: (search: string | undefined) =>
     swrShape(search ? { rows: [{ ...quoteRow, Symbol: search.toUpperCase(), Name: `${search.toUpperCase()} result` }] } : undefined),
   useNewsRPMIndexedDataSearchResults: () => swrShape(newsRows.length ? { rows: newsRows } : undefined),
-  useTypedSWR: fakeUseTypedSWR,
+  useTypedSWR: useFakeTypedSWR,
   newsrpmRPCClient: {
     renderBody: mock(async (args: { bodyId: string }) => {
       // "native" is what real feeds tag their HTML with (the reader bug this covers).
@@ -98,7 +98,11 @@ void mock.module("@tokenring-ai/one-frontend/rpc.ts", () => ({
       return { success: true, body: { v: 1, chunks: [{ format: "html", content: `<p>Full text of ${args.bodyId}</p>` }] } };
     }),
   },
-  cloudquoteRPCClient: { getStatus: async () => ({ configured: cloudquoteConfigured }) },
+  cloudquoteRPCClient: {
+    getStatus: async () => ({ configured: cloudquoteConfigured }),
+    getWatchlist: async () => ({ symbols: [], updatedAt: 0 }),
+    saveWatchlist: async (args: { symbols: string[] }) => ({ status: "success", symbols: args.symbols, updatedAt: 1 }),
+  },
   useAgentTypes: () => ({ data: [{ type: "code", displayName: "Coding Agent", description: "", enabledTools: [] }], isLoading: false }),
   agentRPCClient: {},
   filesystemRPCClient: {},

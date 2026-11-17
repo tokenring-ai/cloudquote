@@ -151,6 +151,7 @@ export const CloudQuoteQuoteSchema = z.looseObject({
   LessRecentCloseDate: z.number().optional(),
   TodayClose: z.number().optional(),
   UpdateTime: z.number().optional(),
+  /** Minutes the exchange is supposed to be delayed (for example "15" for a delayed public feed). */
   ExchangeDelay: z.string().optional(),
 
   // Company logo/branding (CompaniesLogo enrichment)
@@ -161,6 +162,7 @@ export const CloudQuoteQuoteSchema = z.looseObject({
   CLWebsite: z.string().optional(),
 
   // Other fields
+  /** Minutes this quote is behind the exchange; 0 is real-time. */
   Delay: z.number().optional(),
   CIK: z.string().optional(),
 });

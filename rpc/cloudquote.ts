@@ -1,7 +1,9 @@
 import type TokenRingApp from "@tokenring-ai/app";
 import { createPollingQueryStream } from "@tokenring-ai/rpc/createPollingQueryStream";
 import { createRPCEndpoint } from "@tokenring-ai/rpc/createRPCEndpoint";
+import type { RpcCallContext } from "@tokenring-ai/rpc/types";
 import CloudQuoteService from "../CloudQuoteService.ts";
+import WatchlistService from "../WatchlistService.ts";
 import CloudQuoteRpcSchema from "./schema.ts";
 
 /**
@@ -17,6 +19,16 @@ const streamQuotes = createPollingQueryStream({
 export default createRPCEndpoint(CloudQuoteRpcSchema, {
   getStatus(_args, app: TokenRingApp) {
     return { configured: app.requireService(CloudQuoteService).isConfigured() };
+  },
+
+  getWatchlist(_args, app: TokenRingApp, context?: RpcCallContext) {
+    const watchlists = app.requireService(WatchlistService);
+    return watchlists.get(watchlists.scopeFor(context?.username));
+  },
+
+  saveWatchlist(args, app: TokenRingApp, context?: RpcCallContext) {
+    const watchlists = app.requireService(WatchlistService);
+    return watchlists.save(watchlists.scopeFor(context?.username), args.symbols, args.expectedUpdatedAt);
   },
 
   getQuote(args, app: TokenRingApp) {

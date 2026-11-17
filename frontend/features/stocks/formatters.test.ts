@@ -3,6 +3,7 @@ import {
   bufferedHistoryRange,
   changeSign,
   fmt,
+  fmtAge,
   fmtHistoryDate,
   fmtMarketCap,
   fmtPrice,
@@ -189,5 +190,19 @@ describe("historyRange", () => {
     expect(from < to).toBe(true);
     expect(from).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(to).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+});
+
+describe("fmtAge", () => {
+  const now = 1_700_000_000_000;
+  it("describes the age of a timestamp", () => {
+    expect(fmtAge(now - 20_000, now)).toBe("just now");
+    expect(fmtAge(now - 3 * 60_000, now)).toBe("3 min ago");
+    expect(fmtAge(now - 5 * 3_600_000, now)).toBe("5 h ago");
+    expect(fmtAge(now - 4 * 86_400_000, now)).toBe("4 d ago");
+  });
+  it("treats future timestamps as just now and missing ones as empty", () => {
+    expect(fmtAge(now + 5_000, now)).toBe("just now");
+    expect(fmtAge(undefined, now)).toBe("");
   });
 });

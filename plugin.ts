@@ -8,6 +8,7 @@ import packageJSON from "./package.json" with { type: "json" };
 import cloudquoteRPC from "./rpc/cloudquote.ts";
 import { CloudQuoteServiceOptionsSchema } from "./schema.ts";
 import tools from "./tools.ts";
+import WatchlistService from "./WatchlistService.ts";
 
 const packageConfigSchema = z.object({
   cloudquote: CloudQuoteServiceOptionsSchema.prefault({}),
@@ -24,6 +25,7 @@ export default {
       rpcService.registerEndpoint(cloudquoteRPC);
     });
     app.addService(CloudQuoteService, new CloudQuoteService(app));
+    app.addService(WatchlistService, new WatchlistService(app));
   },
   reconfigure(app, config) {
     // An unset key still reconfigures (to ""), so `isConfigured()` reports a

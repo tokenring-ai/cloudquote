@@ -4,9 +4,10 @@ import { useLiveStreamStatusFromSWR } from "@tokenring-ai/one-frontend/hooks/use
 import { useStockQuotesStream } from "@tokenring-ai/one-frontend/rpc.ts";
 import { BotMessageSquare, CandlestickChart, Clock, History, Loader2, Newspaper, Star } from "lucide-react";
 import { useMemo, useState } from "react";
-import { fmt, fmtPrice, fmtTs } from "../formatters.ts";
+import { fmt, fmtPrice } from "../formatters.ts";
 import { useWatchlist } from "../watchlist.ts";
 import AskAIModal from "./AskAIModal.tsx";
+import LastTradeTime from "./LastTradeTime.tsx";
 import LayoutPriceChartCard from "./LayoutPriceChartCard.tsx";
 import OverviewTab from "./OverviewTab.tsx";
 
@@ -92,7 +93,7 @@ export default function LayoutStockDetail({ symbol, onClear, onOpenTool, chartVi
                   />
                   {quoteRow.LastTradeTime && (
                     <span className="text-xs text-muted flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> {fmtTs(quoteRow.LastTradeTime, "datetime")}
+                      <Clock className="w-3 h-3" /> <LastTradeTime ts={quoteRow.LastTradeTime} delay={quoteRow.Delay} exchangeDelay={quoteRow.ExchangeDelay} />
                     </span>
                   )}
                 </>

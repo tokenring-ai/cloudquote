@@ -369,9 +369,16 @@ Comprehensive schema for quote data. All fields are optional as they depend on t
 
 - `MostRecentClose`, `MostRecentCloseDate`, `LessRecentClose`, `LessRecentCloseDate`
 
+**Delay fields:**
+
+- `Delay` (number): how many minutes behind the exchange this quote is. `0` means real-time.
+- `ExchangeDelay` (string): how many minutes the exchange is supposed to be delayed, for exchanges whose public feed is delayed (for example `"15"`).
+
+The Stocks app shows "Delayed N min" or "Real-time" next to the last-trade time from `Delay`, with `ExchangeDelay` in the tooltip. A quote with no `Delay` shows only the last-trade time and its age.
+
 **Other fields:**
 
-- `Delay`, `CIK`
+- `CIK`
 
 ### CloudQuoteQuoteHistoricalItemSchema
 

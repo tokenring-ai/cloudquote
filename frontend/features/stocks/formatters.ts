@@ -41,6 +41,21 @@ export function fmtTs(ts: number | null | undefined, kind: "date" | "datetime" =
 }
 
 /**
+ * How long ago `ts` (epoch ms) was, relative to `now`: "just now", "3 min ago",
+ * "2 h ago", "4 d ago". A timestamp slightly in the future (clock skew) reads as "just now".
+ */
+export function fmtAge(ts: number | null | undefined, now: number = Date.now()): string {
+  if (!ts || Number.isNaN(new Date(ts).getTime())) return "";
+  const seconds = Math.max(0, Math.round((now - ts) / 1000));
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 48) return `${hours} h ago`;
+  return `${Math.floor(hours / 24)} d ago`;
+}
+
+/**
  * Normalize a history/tick timestamp to epoch milliseconds.
  * CloudQuote typically returns ms; some feeds use µs/ns or seconds.
  */
@@ -115,4 +130,50 @@ export function bufferedHistoryRange(from: string, to: string): { from: string; 
   const bufferedTo = shiftIsoDate(to, 1);
   if (!bufferedFrom || !bufferedTo) return null;
   return { from: bufferedFrom, to: bufferedTo };
+}
+
+export interface DelayInfo {
+  label: string;
+  /** `delayed` when the data is behind the exchange; `realtime` when it is not. */
+  kind: "delayed" | "realtime";
+  /** Plain-language explanation for a tooltip. */
+  detail: string;
+}
+
+/** "15 min", "1 h", "1 h 30 min". */
+export function fmtMinutes(minutes: number): string {
+  const whole = Math.round(minutes);
+  if (whole < 60) return `${whole} min`;
+  const hours = Math.floor(whole / 60);
+  const rest = whole % 60;
+  return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
+}
+
+function parseMinutes(value: number | string | null | undefined): number | undefined {
+  if (value === null || value === undefined || value === "") return undefined;
+  const minutes = typeof value === "number" ? value : Number.parseFloat(value);
+  return Number.isFinite(minutes) && minutes >= 0 ? minutes : undefined;
+}
+
+/**
+ * What a quote's delay fields say. `Delay` is how many minutes behind the exchange this quote is;
+ * `ExchangeDelay` is how many minutes the exchange itself is supposed to be delayed (for example a
+ * delayed public feed). Returns null when `Delay` is absent or unreadable: nothing is claimed then.
+ */
+export function describeDelay(delay: number | string | null | undefined, exchangeDelay?: number | string | null): DelayInfo | null {
+  const behind = parseMinutes(delay);
+  if (behind === undefined) return null;
+  const expected = parseMinutes(exchangeDelay);
+  const expectedNote = expected !== undefined && expected > 0 ? ` This exchange's data is supposed to be delayed ${fmtMinutes(expected)}.` : "";
+
+  if (behind === 0) {
+    return { kind: "realtime", label: "Real-time", detail: `This quote is not delayed.${expectedNote}` };
+  }
+  const extra =
+    expected !== undefined && expected > 0 && behind > expected ? ` That is more than the ${fmtMinutes(expected)} the exchange is supposed to be delayed.` : "";
+  return {
+    kind: "delayed",
+    label: `Delayed ${fmtMinutes(behind)}`,
+    detail: `This quote is ${fmtMinutes(behind)} behind the exchange.${expectedNote ? expectedNote : ""}${extra}`,
+  };
 }

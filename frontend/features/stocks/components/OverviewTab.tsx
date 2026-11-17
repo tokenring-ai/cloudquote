@@ -2,6 +2,7 @@ import StatCard from "@tokenring-ai/one-frontend/components/ui/StatCard.tsx";
 import { Building2, Clock, DollarSign, Globe } from "lucide-react";
 import { changeSign, fmt, fmtMarketCap, fmtPrice, fmtTs, fmtVol } from "../formatters.ts";
 import type { StockQuote } from "../types.ts";
+import LastTradeTime from "./LastTradeTime.tsx";
 import RangeBar from "./RangeBar.tsx";
 import StocksLoadError from "./StocksLoadError.tsx";
 
@@ -191,7 +192,7 @@ export default function OverviewTab({ quote, quoteLoading, quoteError, onRetry }
         )}
         {quote.LastTradeTime && (
           <div className="flex items-center gap-1.5">
-            <Clock className="w-3 h-3" /> Last trade {fmtTs(quote.LastTradeTime, "datetime")}
+            <Clock className="w-3 h-3" /> Last trade <LastTradeTime ts={quote.LastTradeTime} delay={quote.Delay} exchangeDelay={quote.ExchangeDelay} />
           </div>
         )}
       </div>
